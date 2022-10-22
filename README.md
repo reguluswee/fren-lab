@@ -1,9 +1,9 @@
 
 ## Installation
 
-Clone repo`git clone git@github.com:FairCrypto/XEN-crypto.git`
+Clone repo`git clone git@github.com:reguluswee/fren-lab.git`
 
-`cd XEN-crypto`
+`cd fren-lab`
 
 Install dependencies `npm i`
 
