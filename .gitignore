@@ -7,6 +7,7 @@ build/
 .env
 .env.local
 .env.*.local
+.env.dev
 
 # Log files
 npm-debug.log*
@@ -28,3 +29,6 @@ nohup.out
 
 coverage.json
 coverage/
+contracts/ref
+
+test/testSwap.js
