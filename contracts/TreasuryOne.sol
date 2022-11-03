@@ -31,7 +31,7 @@ contract TreasuryOne is Ownable, ReentrancyGuard, IBurnRedeemable, IERC165 {
     IMemorySwap private _swapContract = IMemorySwap(0x0980185E2E5e41EdAf71e0Da5c37a8448F213Fb3);
 
     uint256 public devQuato = 60;
-    uint256 public buyPercent = 100;
+    uint256 public maxIn = 10 ether;
     address public devWallet = 0x0926c669CC58E83Da4b9F97ceF30f508500732a6;
 
     constructor() {
@@ -44,10 +44,9 @@ contract TreasuryOne is Ownable, ReentrancyGuard, IBurnRedeemable, IERC165 {
     function exeBuyFREN(uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) 
         external payable onlyOwner returns(uint[] memory) {
         
-        uint256 availableBal = address(this).balance;
+        uint256 availableBal = address(this).balance > maxIn ? maxIn : address(this).balance;
 
         unchecked {
-            availableBal = availableBal * buyPercent / 100;
             if(devQuato > 0) {
                 uint256 devAmount = availableBal * 10 / devQuato;
                 availableBal = availableBal - devAmount;    //forbid reentry
@@ -93,9 +92,9 @@ contract TreasuryOne is Ownable, ReentrancyGuard, IBurnRedeemable, IERC165 {
         devWallet = _wallet;
     }
 
-    function relayBuyPercent(uint256 _buyPercent) external onlyOwner {
-        require(_buyPercent <= 100 && _buyPercent>0 , "buy percent is not correct.");
-        buyPercent = _buyPercent;
+    function relayMaxIn(uint256 _maxIn) external onlyOwner {
+        require(_maxIn > 0, "max buy in should more than zero.");
+        maxIn = _maxIn;
     }
 
 }
