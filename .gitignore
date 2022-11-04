@@ -31,4 +31,4 @@ coverage.json
 coverage/
 contracts/ref
 
-test/testSwap.js
+operator/
