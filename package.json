@@ -39,7 +39,8 @@
     "@ethereumjs/common": "^3.0.1",
     "@openzeppelin/contracts": "^4.7.3",
     "abdk-libraries-solidity": "^3.0.0",
-    "ethereumjs-tx": "^2.1.2"
+    "ethereumjs-tx": "^2.1.2",
+    "node-cron": "^3.0.2"
   },
   "files": [
     "/build/contracts/*.json",
