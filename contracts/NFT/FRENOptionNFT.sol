@@ -401,14 +401,13 @@ contract FRENOptionNFT is IERC721, ERC165, IERC721Metadata, Ownable, IMinter, IB
         return _minter;
     }
 
-    function mintOption(address giveAddress, uint256 eaaRate, uint256 amp, uint256 cRank, uint256 term, address[] calldata pMinters) 
+    function mintOption(address giveAddress, uint256 eaaRate, uint256 amp, uint256 cRank, uint256 term, uint256 maturityTs, address[] calldata pMinters) 
         external onlyMinter {
-        //这里要检查当前地址有没有在mint的nft
         require(giveAddress != address(0), "ERC721: address zero is not a valid owner");
-        require(_balances[giveAddress] == 0, "minting is existing");
+        //require(_balances[giveAddress] == 0, "minting is existing");
 
         uint256 tokenId = ++_currentIndex;
-        _mint(giveAddress, tokenId, eaaRate, amp, cRank, term, pMinters);
+        _mint(giveAddress, tokenId, eaaRate, amp, cRank, term, maturityTs, pMinters);
         emit OpMint(giveAddress, tokenId, _currentIndex);
     }
 
@@ -435,12 +434,11 @@ contract FRENOptionNFT is IERC721, ERC165, IERC721Metadata, Ownable, IMinter, IB
         emit OpBurn(owner, tokenId);
     }
 
-    function _mint(address to, uint256 tokenId, uint256 eaaRate, uint256 amp, uint256 cRank, uint256 term, address[] calldata pMinters) internal virtual {
+    function _mint(address to, uint256 tokenId, uint256 eaaRate, uint256 amp, uint256 cRank, uint256 term, uint256 maturityTs, address[] calldata pMinters) internal virtual {
         require(to != address(0), "ERC721: mint to the zero address");
         require(!_exists(tokenId), "ERC721: token already minted");
 
         _beforeTokenTransfer(address(0), to, tokenId);
-        uint256 termSec = term * 3_600 * 24;
         BullPack memory bp = BullPack({
             minter: to,
             tokenId: tokenId,
@@ -448,7 +446,7 @@ contract FRENOptionNFT is IERC721, ERC165, IERC721Metadata, Ownable, IMinter, IB
             amp: amp,
             cRank: cRank,
             term: term,
-            maturityTs: block.timestamp + termSec,
+            maturityTs: maturityTs,
             pMinters: pMinters
         });
 

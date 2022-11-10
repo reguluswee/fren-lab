@@ -20,7 +20,7 @@ interface IBurnableFOP {
 
     function burnOption(uint256 tokenId) external;
 
-    function mintOption(address giveAddress, uint256 eeaRate, uint256 amp, uint256 cRank, uint256 term, address[] calldata pMinters) external;
+    function mintOption(address giveAddress, uint256 eeaRate, uint256 amp, uint256 cRank, uint256 term, uint256 maturityTs, address[] calldata pMinters) external;
 
     function ownerOfWithPack(uint256 tokenId) external view returns (bool, BullPack memory);
 
