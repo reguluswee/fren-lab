@@ -168,7 +168,8 @@ contract BatchMint is Ownable {
             address get = getter[i];
             (bool ok, bytes memory data) = address(get).call(abi.encodeWithSignature("claimMintReward()"));
             if(!ok) {
-                revert(string(abi.encodePacked("FREN token claim Error.", data)));
+                //revert(string(abi.encodePacked("FREN token claim Error.", data)));
+                emit RewardResponse(ok, data);
             }
             uint256 balance = _REWARD.balanceOf(get);
             _REWARD.transferFrom(get, user, balance);
