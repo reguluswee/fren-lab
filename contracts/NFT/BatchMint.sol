@@ -94,7 +94,7 @@ contract BatchMint is Ownable {
 
     MintParams private _runParam;
 
-    uint256 private _honor = 100;
+    uint256 private _honor = 50;
 
     event RewardResponse(bool success, bytes data);
 
@@ -117,6 +117,7 @@ contract BatchMint is Ownable {
 
     function claimRank(uint256 times, uint256 term) external payable {
         require(address(_runParam.optionNFT) != address(0), "batch minter not ready, please wait.");
+        require(times > 0 && times <=50, "invalid batch times");
         address user = tx.origin;
         
         require(_runParam.optionNFT.balanceOf(user) == 0, "minting now, need to claim or transfer option.");
@@ -145,9 +146,9 @@ contract BatchMint is Ownable {
         }
 
         // mint Identity NFT
-        if(address(_runParam.frenNFT) != address(0)&& times >= _honor) {
-            _runParam.frenNFT.bMint(user, times);
-        }
+        // if(address(_runParam.frenNFT) != address(0)&& times >= _honor) {
+        //     _runParam.frenNFT.bMint(user, times);
+        // }
     }
 
     function claimMintReward(uint256 tokenId) external {
