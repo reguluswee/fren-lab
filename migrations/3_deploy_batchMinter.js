@@ -8,7 +8,7 @@ const FRENMinterNFT = artifacts.require("FRENMinterNFT");
 module.exports = async function (deployer) {
   let deployedMinter = null;
   // should modify to $FREN coin contract address while mainneting
-  await deployer.deploy(BatchMint, "0xa151AAa0b4999CCDa349D0e3FD4EF917974254CE").then((instance)=> {
+  await deployer.deploy(BatchMint, "0x7127deeff734cE589beaD9C4edEFFc39C9128771").then((instance)=> {
     deployedMinter = instance;
   });
   
