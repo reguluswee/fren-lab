@@ -32,23 +32,23 @@ contract Quiz is Ownable {
         bool bo;
     }
 
-    address betErc20;//押注的20地址
-    uint256 percent = 10000;//9500 = 95%
+    address _betErc20;//押注的20地址
+    uint256 public percent = 10000;//9500 = 95%
 
     Game[] public games;//所有的竞猜
     Ticket[] public tickets;//所有的押注
     
 
     // mapping (uint256 => Game) private allGames;//gameId > game
-    mapping (uint256 => uint256[]) private gameATickets;// gameID 对应押注A数量
-    mapping (uint256 => uint256[]) private gameBTickets;// gameID 对应押注B数量
-    mapping (uint256 => uint256[]) private gameCTickets;// gameID 对应押注C数量
-    mapping (address => uint256[]) private userTickets;// 用户对对应押注的ticketsIDs
+    mapping (uint256 => uint256[]) private _gameATickets;// gameID 对应押注A数量
+    mapping (uint256 => uint256[]) private _gameBTickets;// gameID 对应押注B数量
+    mapping (uint256 => uint256[]) private _gameCTickets;// gameID 对应押注C数量
+    mapping (address => uint256[]) private _userTickets;// 用户对对应押注的ticketsIDs
     
     //发起一个比赛
     function launchGame(uint256 pA,uint256 pB,uint256 pC,string memory url,uint8 status,uint256 serviceFee,uint256 initBets) public onlyOwner {
 
-        bool tfResult = transferErc20(msg.sender,address(this), initBets);
+        bool tfResult = _transferErc20(msg.sender,address(this), initBets);
 
         require( tfResult, "Chargeback failure");//扣费失败
 
@@ -81,7 +81,7 @@ contract Quiz is Ownable {
         require( !checkTicket.bo , "Bets have been placed and cannot be placed twice");//不能二次下注
 
         //先把 fren从用户账户里转移到合约地址中
-        bool tfResult = transferErc20(msg.sender,address(this),betsNum);
+        bool tfResult = _transferErc20(msg.sender,address(this),betsNum);
         require( tfResult, "Chargeback failure");//扣费失败
 
         Ticket memory ticket = Ticket({
@@ -98,23 +98,23 @@ contract Quiz is Ownable {
 
         games[gameId].betsNumA += betsNum;
 
-        uint256[] storage tempTAs = gameATickets[gameId];
+        uint256[] storage tempTAs = _gameATickets[gameId];
         if (tempTAs.length == 0){
-            gameATickets[gameId] = new uint256[](0);
-            tempTAs = gameATickets[gameId];
+            _gameATickets[gameId] = new uint256[](0);
+            tempTAs = _gameATickets[gameId];
         }
 
         tempTAs.push(ticket.ticketId);
-        gameATickets[gameId] = tempTAs;
+        _gameATickets[gameId] = tempTAs;
 
-        uint256[] storage tempUt = userTickets[msg.sender];
+        uint256[] storage tempUt = _userTickets[msg.sender];
         if (tempUt.length == 0) {
-            userTickets[msg.sender] = new uint256[](0);
-            tempUt = userTickets[msg.sender];
+            _userTickets[msg.sender] = new uint256[](0);
+            tempUt = _userTickets[msg.sender];
         }
 
         tempUt.push(ticket.ticketId);
-        userTickets[msg.sender] = tempUt;
+        _userTickets[msg.sender] = tempUt;
     }
 
     //押注
@@ -126,7 +126,7 @@ contract Quiz is Ownable {
         Ticket memory checkTicket = getTicketByGameId(msg.sender,gameId);
         require( !checkTicket.bo , "Bets have been placed and cannot be placed twice");//不能二次下注
 
-        bool tfResult = transferErc20(msg.sender,address(this),betsNum);
+        bool tfResult = _transferErc20(msg.sender,address(this),betsNum);
         require( tfResult, "Chargeback failure");//扣费失败
 
         Ticket memory ticket = Ticket({
@@ -143,23 +143,23 @@ contract Quiz is Ownable {
 
         games[gameId].betsNumB += betsNum;
 
-        uint256[] storage tempTAs = gameBTickets[gameId];
+        uint256[] storage tempTAs = _gameBTickets[gameId];
         if (tempTAs.length == 0){
-            gameBTickets[gameId] = new uint256[](0);
-            tempTAs = gameBTickets[gameId];
+            _gameBTickets[gameId] = new uint256[](0);
+            tempTAs = _gameBTickets[gameId];
         }
 
         tempTAs.push(ticket.ticketId);
-        gameBTickets[gameId] = tempTAs;
+        _gameBTickets[gameId] = tempTAs;
 
-        uint256[] storage tempUt = userTickets[msg.sender];
+        uint256[] storage tempUt = _userTickets[msg.sender];
         if (tempUt.length == 0) {
-            userTickets[msg.sender] = new uint256[](0);
-            tempUt = userTickets[msg.sender];
+            _userTickets[msg.sender] = new uint256[](0);
+            tempUt = _userTickets[msg.sender];
         }
         
         tempUt.push(ticket.ticketId);
-        userTickets[msg.sender] = tempUt;
+        _userTickets[msg.sender] = tempUt;
     }
 
     //押注
@@ -170,7 +170,7 @@ contract Quiz is Ownable {
         Ticket memory checkTicket = getTicketByGameId(msg.sender,gameId);
         require( !checkTicket.bo , "Bets have been placed and cannot be placed twice");//不能二次下注
         
-        bool tfResult = transferErc20(msg.sender,address(this),betsNum);
+        bool tfResult = _transferErc20(msg.sender,address(this),betsNum);
         require( tfResult, "Chargeback failure");//扣费失败
 
         Ticket memory ticket = Ticket({
@@ -187,23 +187,23 @@ contract Quiz is Ownable {
 
         games[gameId].betsNumC += betsNum;
 
-        uint256[] storage tempTAs = gameCTickets[gameId];
+        uint256[] storage tempTAs = _gameCTickets[gameId];
         if (tempTAs.length == 0){
-            gameCTickets[gameId] = new uint256[](0);
-            tempTAs = gameCTickets[gameId];
+            _gameCTickets[gameId] = new uint256[](0);
+            tempTAs = _gameCTickets[gameId];
         }
 
         tempTAs.push(ticket.ticketId);
-        gameCTickets[gameId] = tempTAs;
+        _gameCTickets[gameId] = tempTAs;
 
-        uint256[] storage tempUt = userTickets[msg.sender];
+        uint256[] storage tempUt = _userTickets[msg.sender];
         if (tempUt.length == 0) {
-            userTickets[msg.sender] = new uint256[](0);
-            tempUt = userTickets[msg.sender];
+            _userTickets[msg.sender] = new uint256[](0);
+            tempUt = _userTickets[msg.sender];
         }
         
         tempUt.push(ticket.ticketId);
-        userTickets[msg.sender] = tempUt;
+        _userTickets[msg.sender] = tempUt;
     }
 
     //获取到比赛的详情
@@ -212,9 +212,9 @@ contract Quiz is Ownable {
 
         Game memory game = games[gameId];
 
-        uint256[] memory gAIds = gameATickets[gameId];
-        uint256[] memory gBIds = gameBTickets[gameId];
-        uint256[] memory gCIds = gameCTickets[gameId];
+        uint256[] memory gAIds = _gameATickets[gameId];
+        uint256[] memory gBIds = _gameBTickets[gameId];
+        uint256[] memory gCIds = _gameCTickets[gameId];
 
         Ticket[] memory retTA = new Ticket[](gAIds.length);
         Ticket[] memory retTB = new Ticket[](gBIds.length);
@@ -239,7 +239,7 @@ contract Quiz is Ownable {
     function getTicketByGameId(address addr,uint256 gameId) public view returns (Ticket memory) {
         require( games.length > gameId , "Game does not exist");
 
-        uint256[] memory tempUt = userTickets[addr];
+        uint256[] memory tempUt = _userTickets[addr];
 
         Ticket memory tempTicket;
 
@@ -265,11 +265,11 @@ contract Quiz is Ownable {
         require( games[gameId].status != 3 && games[gameId].status != 4, "Status abnormal, cannot be operated");//状态3、4都无法操作
 
          //需要先approve
-        bool aeResult = approveErc20(address(this),games[gameId].initBets);
+        bool aeResult = _approveErc20(address(this),games[gameId].initBets);
 
         require( aeResult, "Approve failure");//授权失败
 
-        bool tfResult = transferErc20(address(this), msg.sender, games[gameId].initBets);
+        bool tfResult = _transferErc20(address(this), msg.sender, games[gameId].initBets);
         require( tfResult, "Chargeback failure");//扣费失败
 
         games[gameId].status = 4;
@@ -295,7 +295,7 @@ contract Quiz is Ownable {
 
     //claim所有的奖励
     function claimPrize() public {
-        uint256[] memory tempUt = userTickets[msg.sender];
+        uint256[] memory tempUt = _userTickets[msg.sender];
         uint256 rewards = 0;
         uint256 bets = 0;
 
@@ -306,19 +306,19 @@ contract Quiz is Ownable {
             if (tempGame.status == 3 && tempGame.winner == tempTicket.bet && tempTicket.status == 0) {//已经开奖且押注等于优胜者
                 if (tempGame.winner == tempGame.playerA) {// A 获胜 就是 bet * 1 + b/a
 
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumB + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumA,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumB + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumA,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                     tickets[tempUt[i]].status = 1;
                     tickets[tempUt[i]].rewards = tempReward;
                 } else if (tempGame.winner == tempGame.playerB) {
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumA + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumB,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumA + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumB,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                     tickets[tempUt[i]].status = 1;
                     tickets[tempUt[i]].rewards = tempReward;
                 } else if (tempGame.winner == tempGame.playerC) {
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumA + tempGame.betsNumB + tempGame.initBets,tempGame.betsNumC,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumA + tempGame.betsNumB + tempGame.initBets,tempGame.betsNumC,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                     tickets[tempUt[i]].status = 1;
@@ -330,11 +330,11 @@ contract Quiz is Ownable {
         require( (rewards + bets) > 0, "No need to claim");
 
         //需要先approve
-        bool aeResult = approveErc20(address(this),rewards + bets);
+        bool aeResult = _approveErc20(address(this),rewards + bets);
 
         require( aeResult, "Approve failure");//授权失败
 
-        bool tfResult = transferErc20(address(this),msg.sender,rewards + bets);
+        bool tfResult = _transferErc20(address(this),msg.sender,rewards + bets);
 
         require( tfResult, "Claim failure");//扣费失败
     }
@@ -346,7 +346,7 @@ contract Quiz is Ownable {
             addr = msg.sender;
         }
 
-        uint256[] memory tempUt = userTickets[addr];
+        uint256[] memory tempUt = _userTickets[addr];
         uint256 rewards = 0;
         uint256 bets = 0;
 
@@ -357,15 +357,15 @@ contract Quiz is Ownable {
             if (tempGame.status == 3 && tempGame.winner == tempTicket.bet && tempTicket.status == 0) {//已经开奖且押注等于优胜者
                 if (tempGame.winner == tempGame.playerA) {// A 获胜 就是 bet * 1 + b/a
 
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumB + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumA,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumB + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumA,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                 } else if (tempGame.winner == tempGame.playerB) {
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumA + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumB,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumA + tempGame.betsNumC + tempGame.initBets,tempGame.betsNumB,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                 } else if (tempGame.winner == tempGame.playerC) {
-                    uint256 tempReward = calculationOfRewards(tempGame.betsNumA + tempGame.betsNumB + tempGame.initBets,tempGame.betsNumC,tempTicket.betsNum,tempGame.serviceFee);
+                    uint256 tempReward = _calculationOfRewards(tempGame.betsNumA + tempGame.betsNumB + tempGame.initBets,tempGame.betsNumC,tempTicket.betsNum,tempGame.serviceFee);
                     rewards += tempReward;
                     bets += tempTicket.betsNum;
                 }
@@ -377,7 +377,7 @@ contract Quiz is Ownable {
 
     //索取取消的比赛的押注
     function checkBet() public view returns (uint256){
-        uint256[] memory tempUt = userTickets[msg.sender];
+        uint256[] memory tempUt = _userTickets[msg.sender];
         uint256 bets = 0;
 
         for (uint256 i = 0;i < tempUt.length;i++){
@@ -394,7 +394,7 @@ contract Quiz is Ownable {
 
     //索取取消的比赛的押注
     function claimBet() public {
-        uint256[] memory tempUt = userTickets[msg.sender];
+        uint256[] memory tempUt = _userTickets[msg.sender];
         uint256 bets = 0;
 
         for (uint256 i = 0;i < tempUt.length;i++){
@@ -411,67 +411,67 @@ contract Quiz is Ownable {
         require( bets > 0, "No need to claim");//扣费失败
 
         //需要先approve
-        bool aeResult = approveErc20(address(this),bets);
+        bool aeResult = _approveErc20(address(this),bets);
 
         require( aeResult, "Approve failure");//授权失败
 
-        bool tfResult = transferErc20(address(this),msg.sender,bets);
+        bool tfResult = _transferErc20(address(this),msg.sender,bets);
 
         require( tfResult, "Claim failure");//扣费失败
 
     }
 
     function withdraw() public onlyOwner {
-        uint256 balance = balanceOfErc20(address(this));
+        uint256 balance = _balanceOfErc20(address(this));
         
         //需要先approve
-        bool aeResult = approveErc20(address(this), balance);
+        bool aeResult = _approveErc20(address(this), balance);
 
         require( aeResult, "Approve failure");//授权失败
 
-        bool tfResult = transferErc20(address(this),msg.sender, balance);
+        bool tfResult = _transferErc20(address(this),msg.sender, balance);
 
         require( tfResult, "withdraw failure");//扣费失败
     }
 
-    function calculationOfRewards(uint256 loser,uint256 winner,uint256 betsNum,uint256 serviceFee) private view returns (uint256) {
+    function _calculationOfRewards(uint256 loser,uint256 winner,uint256 betsNum,uint256 serviceFee) private view returns (uint256) {
         uint256 res = SafeMath.div(SafeMath.mul(loser,betsNum),winner);//奖池金额 / 奖池总押注份数 * 我押注份数 = 奖池金额 * 我押注份数 / 奖池总押注份数 = 我应该拿到的份数数
         res = SafeMath.div(SafeMath.mul(res,serviceFee),percent);// 最后获得奖励 /10000 * 9500 = 最后获得奖励 * 9500 /10000 = 百分之95的奖励金额
         return res;
     } 
 
-    function setBetType(address ercAddr) public onlyOwner {
-        betErc20 = ercAddr;
+    function setBetType(address erc) public onlyOwner {
+        _betErc20 = erc;
     }
 
-    function setPercent(uint256 _percent) public onlyOwner {
-        percent = _percent;
+    function setPercent(uint256 p) public onlyOwner {
+        percent = p;
     }
 
     //扣除费用
-    function transferErc20(address form, address to, uint256 amount) private returns(bool){
+    function _transferErc20(address form, address to, uint256 amount) private returns(bool){
         bytes32 a = keccak256("transferFrom(address,address,uint256)");
         bytes4 methodId = bytes4(a);
         bytes memory b = abi.encodeWithSelector(methodId, form, to, amount);
-        (bool result,) = betErc20.call(b);
+        (bool result,) = _betErc20.call(b);
         return result;
     }
 
     //授权扣费
-    function approveErc20(address spender, uint256 amount) private returns(bool){
+    function _approveErc20(address spender, uint256 amount) private returns(bool){
         bytes32 a = keccak256("approve(address,uint256)");
         bytes4 methodId = bytes4(a);
         bytes memory b = abi.encodeWithSelector(methodId, spender, amount);
-        (bool result,) = betErc20.call(b);
+        (bool result,) = _betErc20.call(b);
         return result;
     }
 
     //余额
-    function balanceOfErc20(address _owner) public returns(uint256){
+    function _balanceOfErc20(address _owner) private returns(uint256){
         bytes32 a = keccak256("balanceOf(address)");
         bytes4 methodId = bytes4(a);
         bytes memory b = abi.encodeWithSelector(methodId, _owner);
-        (uint256 result,) = betErc20.call(b);
+        (uint256 result,) = _betErc20.call(b);
         return result;
     }
 }
