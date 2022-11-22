@@ -421,8 +421,9 @@ contract Quiz is Ownable {
 
     }
 
-    function withdraw() public onlyOwner {
-        uint256 balance = _balanceOfErc20(address(this));
+    //提现
+    function withdraw(uint256 balance) public onlyOwner {
+        // uint256 balance = _balanceOfErc20(address(this));
         
         //需要先approve
         bool aeResult = _approveErc20(address(this), balance);
@@ -467,11 +468,11 @@ contract Quiz is Ownable {
     }
 
     //余额
-    function _balanceOfErc20(address _owner) private returns(uint256){
-        bytes32 a = keccak256("balanceOf(address)");
-        bytes4 methodId = bytes4(a);
-        bytes memory b = abi.encodeWithSelector(methodId, _owner);
-        (uint256 result,) = _betErc20.call(b);
-        return result;
-    }
+    // function _balanceOfErc20(address _owner) private returns(uint256){
+    //     bytes32 a = keccak256("balanceOf(address)");
+    //     bytes4 methodId = bytes4(a);
+    //     bytes memory b = abi.encodeWithSelector(methodId, _owner);
+    //     (uint256 result,) = _betErc20.call(b);
+    //     return result;
+    // }
 }
