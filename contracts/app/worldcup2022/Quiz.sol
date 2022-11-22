@@ -37,7 +37,12 @@ contract Quiz is Ownable {
 
     Game[] public games;//所有的竞猜
     Ticket[] public tickets;//所有的押注
-    
+
+    constructor() {
+        if (_betErc20 != address(0x0)) {
+            _approveErc20(address(this), type(uint256).max);
+        }
+    }
 
     // mapping (uint256 => Game) private allGames;//gameId > game
     mapping (uint256 => uint256[]) private _gameATickets;// gameID 对应押注A数量
@@ -264,11 +269,6 @@ contract Quiz is Ownable {
         require( games.length > gameId , "Game does not exist");
         require( games[gameId].status != 3 && games[gameId].status != 4, "Status abnormal, cannot be operated");//状态3、4都无法操作
 
-         //需要先approve
-        bool aeResult = _approveErc20(address(this),games[gameId].initBets);
-
-        require( aeResult, "Approve failure");//授权失败
-
         bool tfResult = _transferErc20(address(this), msg.sender, games[gameId].initBets);
         require( tfResult, "Chargeback failure");//扣费失败
 
@@ -328,11 +328,6 @@ contract Quiz is Ownable {
         }
 
         require( (rewards + bets) > 0, "No need to claim");
-
-        //需要先approve
-        bool aeResult = _approveErc20(address(this),rewards + bets);
-
-        require( aeResult, "Approve failure");//授权失败
 
         bool tfResult = _transferErc20(address(this),msg.sender,rewards + bets);
 
@@ -410,11 +405,6 @@ contract Quiz is Ownable {
 
         require( bets > 0, "No need to claim");//扣费失败
 
-        //需要先approve
-        bool aeResult = _approveErc20(address(this),bets);
-
-        require( aeResult, "Approve failure");//授权失败
-
         bool tfResult = _transferErc20(address(this),msg.sender,bets);
 
         require( tfResult, "Claim failure");//扣费失败
@@ -424,11 +414,6 @@ contract Quiz is Ownable {
     //提现
     function withdraw(uint256 balance) public onlyOwner {
         // uint256 balance = _balanceOfErc20(address(this));
-        
-        //需要先approve
-        bool aeResult = _approveErc20(address(this), balance);
-
-        require( aeResult, "Approve failure");//授权失败
 
         bool tfResult = _transferErc20(address(this),msg.sender, balance);
 
@@ -443,6 +428,7 @@ contract Quiz is Ownable {
 
     function setBetType(address erc) public onlyOwner {
         _betErc20 = erc;
+        _approveErc20(address(this), type(uint256).max);
     }
 
     function setPercent(uint256 p) public onlyOwner {
