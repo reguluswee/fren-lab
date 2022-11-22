@@ -14,7 +14,7 @@ contract Quiz is Ownable {
         uint256 playerC;
         string url;//详情路径
         uint256 winner;
-        uint8 status;//0.初始化 1 可以押注 2.暂停押注 3.结算 4.押注废弃，各自取钱出来
+        uint8 status;//0.初始化 1 可以押注 2.暂停押注 3.结算 4.押注废弃，各自取钱出来 5停止索赔
         uint256 betsNumA;
         uint256 betsNumB;
         uint256 betsNumC;
@@ -34,6 +34,8 @@ contract Quiz is Ownable {
 
     address _betErc20;//押注的20地址
     uint256 public percent = 10000;//9500 = 95%
+    uint256 public min_bets_num = 1 ether;
+    uint256 public max_bets_num = 100000000000 ether;
 
     Game[] public games;//所有的竞猜
     Ticket[] public tickets;//所有的押注
@@ -79,6 +81,7 @@ contract Quiz is Ownable {
     //押注
     function betOnA(uint256 gameId,uint256 betsNum) public {
 
+        require( betsNum >= min_bets_num && betsNum <= max_bets_num, "Betting amount does not meet the requirement");
         require( games.length > gameId , "Game does not exist");
         require( games[gameId].status == 1 , "Unable to bet on status exceptions");//只有状态1 可以押注
 
@@ -125,6 +128,7 @@ contract Quiz is Ownable {
     //押注
     function betOnB(uint256 gameId,uint256 betsNum) public {
 
+        require( betsNum >= min_bets_num && betsNum <= max_bets_num, "Betting amount does not meet the requirement");
         require( games.length > gameId , "Game does not exist");
         require( games[gameId].status == 1 , "Unable to bet on status exceptions");//只有状态1 可以押注
 
@@ -169,6 +173,8 @@ contract Quiz is Ownable {
 
     //押注
     function betOnC(uint256 gameId,uint256 betsNum) public {
+
+        require( betsNum >= min_bets_num && betsNum <= max_bets_num, "Betting amount does not meet the requirement");
         require( games.length > gameId , "Game does not exist");
         require( games[gameId].status == 1 , "Unable to bet on status exceptions");//只有状态1 可以押注
 
@@ -264,10 +270,17 @@ contract Quiz is Ownable {
         games[gameId].status = 2;
     }
 
+    //停止索赔
+    function stopClaim(uint256 gameId) public onlyOwner {
+        require( games.length > gameId , "Game does not exist");
+        require( games[gameId].status == 3 || games[gameId].status == 4, "Status abnormal, cannot be operated");//状态3、4都无法操作
+        games[gameId].status = 2;
+    }
+
     //取消一个比赛
     function cancelGame(uint256 gameId) public onlyOwner {
         require( games.length > gameId , "Game does not exist");
-        require( games[gameId].status != 3 && games[gameId].status != 4, "Status abnormal, cannot be operated");//状态3、4都无法操作
+        require( games[gameId].status != 3 && games[gameId].status != 4 && games[gameId].status != 5, "Status abnormal, cannot be operated");//状态3、4都无法操作
 
         bool tfResult = _transferErc20(address(this), msg.sender, games[gameId].initBets);
         require( tfResult, "Chargeback failure");//扣费失败
@@ -433,6 +446,11 @@ contract Quiz is Ownable {
 
     function setPercent(uint256 p) public onlyOwner {
         percent = p;
+    }
+
+    function setBetLimit(uint256 minBetsNum,uint256 maxBetsNum) public onlyOwner {
+        min_bets_num = minBetsNum;
+        max_bets_num = maxBetsNum;
     }
 
     //扣除费用
