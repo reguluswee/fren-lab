@@ -75,7 +75,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
                 id: allMatches.length,
                 extPrizeAmount: msg.value,
                 startTimestamp: _startTs,
-                status:0,
+                status:1,
                 minBetAmount: (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT),
                 maxBetAmount: (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT),
                 minMatchBettors: (_minMatchBettors > 0 ? _minMatchBettors : MIN_MATCH_BETTORS),
