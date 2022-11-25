@@ -47,7 +47,7 @@ contract MatchQuiz is Ownable {
 
     uint256 public constant MIN_BET_AMOUNT = 1 ether;
     uint256 public constant MAX_BET_AMOUNT = 10_000_000 ether;
-    uint256 public constant MIN_MATCH_BETTORS = 100;
+    uint256 public constant MIN_MATCH_BETTORS = 10;
     uint256 public constant MIN_MATCH_FREN_AMOUNT = 10_000_000 ether;
 
     constructor(address _frenAddr) {
@@ -66,7 +66,7 @@ contract MatchQuiz is Ownable {
             existGame.startTimestamp = _startTs;
             existGame.minBetAmount = (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT);
             existGame.maxBetAmount = (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT);
-            existGame.minMatchBettors = (_minMatchBettors > 0 ? _minMatchBettors : MIN_MATCH_BETTORS);
+            existGame.minMatchBettors = (_minMatchBettors > MIN_MATCH_BETTORS ? _minMatchBettors : MIN_MATCH_BETTORS);
             return matchId;
         } else {
             require(_startTs > block.timestamp, "invalid start match time");
