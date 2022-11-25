@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IFren{
     function transferFrom(
@@ -13,7 +14,7 @@ interface IFren{
     function approve(address spender, uint256 amount) external returns (bool);
 }
 
-contract MatchQuiz is Ownable {
+contract MatchQuiz is Ownable, ReentrancyGuard {
     struct Guess {
         address bettor;
         uint256 frenAmount;
@@ -117,6 +118,14 @@ contract MatchQuiz is Ownable {
         _game.status = 4;
     }
 
+    function withdraw() external onlyOwner nonReentrant returns(bool mainBalance, bool frenBalance){
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        uint256 balance = _frenHandler.balanceOf(address(this));
+        bool frenDraw = _frenHandler.transferFrom(address(this), msg.sender, balance);
+        
+        return (success, frenDraw);
+    }
+
     function betGame(uint256 matchId, uint128 scoreA, uint128 scoreB, uint256 betAmount) external returns(bool) {
         require(matchId < allMatches.length, "invalid match id.");
         require(allMatches[matchId].status == 1, "invalid match status");
@@ -157,4 +166,5 @@ contract MatchQuiz is Ownable {
             payable(msg.sender).transfer(extAmount);
         }
     }
+
 }
