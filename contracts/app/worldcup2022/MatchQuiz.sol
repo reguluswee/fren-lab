@@ -167,4 +167,8 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         }
     }
 
+    function claimDraw(uint256 matchId) external {
+        // TODO
+    }
+
 }
