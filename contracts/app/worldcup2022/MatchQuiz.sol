@@ -129,6 +129,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
     function betGame(uint256 matchId, uint128 scoreA, uint128 scoreB, uint256 betAmount) external returns(bool) {
         require(matchId < allMatches.length, "invalid match id.");
         require(allMatches[matchId].status == 1, "invalid match status");
+        require(allMatches[matchId].startTimestamp + stopBetThreshold <= block.timestamp, "bet had cut off.");
         require(scoreA<20 && scoreB<20, "invalid score parameter.");
         require(betAmount >= allMatches[matchId].minBetAmount && betAmount <= allMatches[matchId].maxBetAmount, "invalid bet amount");
         require(
@@ -168,7 +169,19 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
     }
 
     function claimDraw(uint256 matchId) external {
-        // TODO
+        require(matchId < allMatches.length, "invalid match id.");
+        require(allMatches[matchId].status == 3, "invalid match status");
+
+        Guess[] storage matchGuess = allBets[matchId];
+        uint256 totalBetAmount = 0;
+        for(uint i=0; i<matchGuess.length; i++) {
+            if(matchGuess[i].bettor==msg.sender) {
+                totalBetAmount += matchGuess[i].frenAmount;
+                delete matchGuess[i];
+            }
+        }
+
+        _frenHandler.transferFrom(address(this), msg.sender, totalBetAmount);
     }
 
 }
