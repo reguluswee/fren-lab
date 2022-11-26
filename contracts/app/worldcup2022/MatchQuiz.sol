@@ -25,7 +25,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         uint256 id;
         uint256 extPrizeAmount; //ethf
         uint256 startTimestamp;
-        uint256 status; // 0: init; 1: ongoing; 2: stop betting; 3: bet success; 4: bet fail
+        uint256 status; // 0: init; 1: ongoing; 2: stop betting; 3: bet fail; 4: bet success
         uint256 minBetAmount;
         uint256 maxBetAmount;
         uint256 minMatchBettors;
@@ -96,9 +96,10 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         _game.status = 2;
         _game.scoreA = _scoreA;
         _game.scoreB = _scoreB;
+        _calGame(matchId);
     }
 
-    function calGame(uint256 matchId) external onlyOwner {
+    function _calGame(uint256 matchId) internal {
         require(matchId < allMatches.length, "invalid match id");
         Match storage _game = allMatches[matchId];
         require(_game.status == 2,  "invalid match status");
@@ -129,7 +130,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
     function betGame(uint256 matchId, uint128 scoreA, uint128 scoreB, uint256 betAmount) external returns(bool) {
         require(matchId < allMatches.length, "invalid match id.");
         require(allMatches[matchId].status == 1, "invalid match status");
-        require(allMatches[matchId].startTimestamp + stopBetThreshold <= block.timestamp, "bet had cut off.");
+        require(allMatches[matchId].startTimestamp + stopBetThreshold >= block.timestamp, "bet had cut off.");
         require(scoreA<20 && scoreB<20, "invalid score parameter.");
         require(betAmount >= allMatches[matchId].minBetAmount && betAmount <= allMatches[matchId].maxBetAmount, "invalid bet amount");
         require(
@@ -182,6 +183,10 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         }
 
         _frenHandler.transferFrom(address(this), msg.sender, totalBetAmount);
+    }
+
+    function getMatches() public view returns(Match[] memory) {
+        return allMatches;
     }
 
 }
