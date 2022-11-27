@@ -29,6 +29,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         uint256 minBetAmount;
         uint256 maxBetAmount;
         uint256 minMatchBettors;
+        uint256 minMatchFren;
         uint256 totalPrizeAmount;
         uint256 winPrizeAmount;
 
@@ -49,7 +50,6 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
     uint256 public constant MIN_BET_AMOUNT = 1 ether;
     uint256 public constant MAX_BET_AMOUNT = 10_000_000 ether;
     uint256 public constant MIN_MATCH_BETTORS = 10;
-    uint256 public constant MIN_MATCH_FREN_AMOUNT = 10_000_000 ether;
 
     constructor(address _frenAddr) {
         require(_frenAddr != address(0), "not valid address");
@@ -57,7 +57,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         _frenHandler.approve(_frenAddr, ~uint256(0));
     }
 
-    function initGame(uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors) 
+    function initGame(uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors, uint256 _minMatchFren) 
         external payable onlyOwner returns(uint256)  {
         Match memory newGame = Match({
             id: allMatches.length,
@@ -67,6 +67,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
             minBetAmount: (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT),
             maxBetAmount: (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT),
             minMatchBettors: (_minMatchBettors > MIN_MATCH_BETTORS ? _minMatchBettors : MIN_MATCH_BETTORS),
+            minMatchFren: _minMatchFren,
             scoreA: 0,
             scoreB: 0,
             totalPrizeAmount: 0,
@@ -76,7 +77,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         return newGame.id;
     }
 
-    function modifyGame(uint256 matchId, uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors, uint256 _status) 
+    function modifyGame(uint256 matchId, uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors, uint256 _minMatchFren, uint256 _status) 
         external payable onlyOwner returns(uint256) {
         Match storage _m = allMatches[matchId];
         require(_m.startTimestamp > 0, "not exist match id.");
@@ -85,6 +86,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         _m.maxBetAmount = _maxBetAmount;
         _m.status = _status;
         _m.minMatchBettors = _minMatchBettors;
+        _m.minMatchFren = _minMatchFren;
         if(msg.value > 0) {
             _m.extPrizeAmount += msg.value;
         }
@@ -107,7 +109,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         require(_game.status == 2,  "invalid match status");
         // judge match bet result valid or not
         Guess[] storage gameGuessResult = allBets[matchId];
-        if(gameGuessResult.length < _game.minMatchBettors || _game.totalPrizeAmount < MIN_MATCH_FREN_AMOUNT) {
+        if(gameGuessResult.length < _game.minMatchBettors || _game.totalPrizeAmount < _game.minMatchFren) {
             _game.status = 3;
             return;
         }
