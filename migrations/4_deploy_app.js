@@ -3,7 +3,7 @@ const { deploy } = require("truffle-contract/lib/execute");
 const MatchQuiz = artifacts.require("MatchQuiz");
 
 let tokenContract = '0x7127deeff734cE589beaD9C4edEFFc39C9128771'; // ethf mainnet
-// let tokenContract = '0xd849e23c4347Fe7e423f15F23C1b783C4FfdAb32'
+// let tokenContract = '0xd849e23c4347Fe7e423f15F23C1b783C4FfdAb32' //local ganache
 
 module.exports = async function (deployer) {
   let deployedMinter = null;

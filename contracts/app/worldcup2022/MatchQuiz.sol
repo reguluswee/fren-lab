@@ -4,6 +4,8 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
+
 interface IFren{
     function transferFrom(
         address from,
@@ -37,6 +39,9 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         uint128 scoreB;
     }
 
+    using ABDKMath64x64 for int128;
+    using ABDKMath64x64 for uint256;
+
     uint256 public stopBetThreshold = 10 * 60;
 
     // mapping(uint256 => Guess[]) public allBets;
@@ -54,7 +59,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
     constructor(address _frenAddr) {
         require(_frenAddr != address(0), "not valid address");
         _frenHandler = IFren(_frenAddr);
-        _frenHandler.approve(_frenAddr, ~uint256(0));
+        _frenHandler.approve(address(this), ~uint256(0));
     }
 
     function initGame(uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors, uint256 _minMatchFren) 
@@ -81,6 +86,7 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         external payable onlyOwner returns(uint256) {
         Match storage _m = allMatches[matchId];
         require(_m.startTimestamp > 0, "not exist match id.");
+        require(_m.status == 0 || _m.status == 1, "invalid status to modify.");
         _m.startTimestamp = _startTs;
         _m.minBetAmount = _minBetAmount;
         _m.maxBetAmount = _maxBetAmount;
@@ -161,14 +167,20 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         uint256 matchTotalFren = _game.totalPrizeAmount;
 
         uint256 myAmount = matchPrize[matchId][msg.sender];
+        require(myAmount > 0, "sorry, you have not prize to claim.");
+
         uint256 winAmount = _game.winPrizeAmount;
+        require(winAmount > 0 && myAmount <= winAmount, "quato error.");
 
-        uint256 prizeAmount = myAmount / winAmount * matchTotalFren;
+        uint256 prizeAmount = matchTotalFren / winAmount * myAmount;
 
-        _frenHandler.transferFrom(address(this), msg.sender, prizeAmount);
+        matchPrize[matchId][msg.sender] = 0;    // non reentry
+
+        bool transResult = _frenHandler.transferFrom(address(this), msg.sender, prizeAmount);
+        require(transResult, "claim prize error, try later");
 
         if(_game.extPrizeAmount > 0) {
-            uint256 extAmount = myAmount / winAmount * _game.extPrizeAmount;
+            uint256 extAmount = myAmount * _game.extPrizeAmount / winAmount;
             payable(msg.sender).transfer(extAmount);
         }
     }
@@ -185,8 +197,10 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
                 delete matchGuess[i];
             }
         }
-
-        _frenHandler.transferFrom(address(this), msg.sender, totalBetAmount);
+        require(totalBetAmount > 0, "have not fren to withdraw");
+        require(
+            _frenHandler.transferFrom(address(this), msg.sender, totalBetAmount),
+            "claim draw fail, try later");
     }
 
     function getMatches() public view returns(Match[] memory) {
