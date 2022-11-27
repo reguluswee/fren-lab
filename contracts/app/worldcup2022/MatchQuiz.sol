@@ -57,36 +57,38 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
         _frenHandler.approve(_frenAddr, ~uint256(0));
     }
 
-    function initGame(uint256 matchId, 
-        uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors) 
+    function initGame(uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors) 
         external payable onlyOwner returns(uint256)  {
-        
-        if(matchId > 0) {
-            require(matchId < allMatches.length, "invalid match id");
-            Match storage existGame = allMatches[matchId];
-            existGame.startTimestamp = _startTs;
-            existGame.minBetAmount = (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT);
-            existGame.maxBetAmount = (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT);
-            existGame.minMatchBettors = (_minMatchBettors > MIN_MATCH_BETTORS ? _minMatchBettors : MIN_MATCH_BETTORS);
-            return matchId;
-        } else {
-            require(_startTs > block.timestamp, "invalid start match time");
-            Match memory newGame = Match({
-                id: allMatches.length,
-                extPrizeAmount: msg.value,
-                startTimestamp: _startTs,
-                status:1,
-                minBetAmount: (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT),
-                maxBetAmount: (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT),
-                minMatchBettors: (_minMatchBettors > 0 ? _minMatchBettors : MIN_MATCH_BETTORS),
-                scoreA: 0,
-                scoreB: 0,
-                totalPrizeAmount: 0,
-                winPrizeAmount: 0
-            });
-            allMatches.push(newGame);
-            return newGame.id;
+        Match memory newGame = Match({
+            id: allMatches.length,
+            extPrizeAmount: msg.value,
+            startTimestamp: _startTs,
+            status:0,
+            minBetAmount: (_minBetAmount > MIN_BET_AMOUNT ? _minBetAmount : MIN_BET_AMOUNT),
+            maxBetAmount: (_maxBetAmount > MAX_BET_AMOUNT  ? _maxBetAmount : MAX_BET_AMOUNT),
+            minMatchBettors: (_minMatchBettors > MIN_MATCH_BETTORS ? _minMatchBettors : MIN_MATCH_BETTORS),
+            scoreA: 0,
+            scoreB: 0,
+            totalPrizeAmount: 0,
+            winPrizeAmount: 0
+        });
+        allMatches.push(newGame);
+        return newGame.id;
+    }
+
+    function modifyGame(uint256 matchId, uint256 _startTs, uint256 _minBetAmount, uint256 _maxBetAmount, uint256 _minMatchBettors, uint256 _status) 
+        external payable onlyOwner returns(uint256) {
+        Match storage _m = allMatches[matchId];
+        require(_m.startTimestamp > 0, "not exist match id.");
+        _m.startTimestamp = _startTs;
+        _m.minBetAmount = _minBetAmount;
+        _m.maxBetAmount = _maxBetAmount;
+        _m.status = _status;
+        _m.minMatchBettors = _minMatchBettors;
+        if(msg.value > 0) {
+            _m.extPrizeAmount += msg.value;
         }
+        return _m.id;
     }
 
     function endGame(uint256 matchId, uint128 _scoreA, uint128 _scoreB) external onlyOwner {
@@ -187,6 +189,10 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
 
     function getMatches() public view returns(Match[] memory) {
         return allMatches;
+    }
+
+    function getMatchGuess(uint256 matchId) public view returns(Guess[] memory) {
+        return allBets[matchId];
     }
 
 }
