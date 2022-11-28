@@ -119,14 +119,22 @@ contract MatchQuiz is Ownable, ReentrancyGuard {
             _game.status = 3;
             return;
         }
+        bool hasWinner = false;
         for(uint i=0; i< gameGuessResult.length; i++) {
             if(gameGuessResult[i].guessScoreA == _game.scoreA && gameGuessResult[i].guessScoreB == _game.scoreB) {
+                if(!hasWinner) { // setting once
+                    hasWinner = true;
+                }
                 // addin 
                 matchPrize[matchId][gameGuessResult[i].bettor] += gameGuessResult[i].frenAmount;    //add quato of bettor
                 allMatches[matchId].winPrizeAmount += gameGuessResult[i].frenAmount;
             }
         }
-        _game.status = 4;
+        if(!hasWinner) {
+            _game.status = 3;   // no winner so failed
+        } else {
+            _game.status = 4;   // has winner so success
+        }
     }
 
     function withdraw() external onlyOwner nonReentrant returns(bool mainBalance, bool frenBalance){
