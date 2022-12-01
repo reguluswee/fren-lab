@@ -42,7 +42,6 @@ interface IFrenReward{
 }
 
 contract Minter{
-    // IFrenMint private _FREN = IFrenMint(0x7127deeff734cE589beaD9C4edEFFc39C9128771);
     IFrenMint private _FREN;
 
     constructor(address _fren) {
@@ -65,11 +64,6 @@ contract Minter{
 
 }
 
-interface IFrenNFT {
-    function bMint(address giveAddress, uint256 burnCount) external returns (bool);
-    function balanceOf(address owner) external view returns (uint256);
-}
-
 interface IOptionNFT {
     function mintOption(address giveAddress, uint256 eeaRate, uint256 amp, uint256 cRank, uint256 term, uint256 maturityTs, address[] calldata pMinters) external;
     function burnOption(uint256 tokenId) external;
@@ -78,13 +72,10 @@ interface IOptionNFT {
 }
 
 /*
-let batchAbi = [{"inputs":[{"internalType":"address","name":"_fren","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"success","type":"bool"},{"indexed":false,"internalType":"bytes","name":"data","type":"bytes"}],"name":"RewardResponse","type":"event"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getFren","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"address","name":"_frenNFT","type":"address"},{"internalType":"address","name":"_optionNFT","type":"address"}],"name":"relayBatchParams","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getBatchParams","outputs":[{"components":[{"internalType":"contract IFrenNFT","name":"frenNFT","type":"address"},{"internalType":"contract IOptionNFT","name":"optionNFT","type":"address"}],"internalType":"struct BatchMint.MintParams","name":"","type":"tuple"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"uint256","name":"times","type":"uint256"},{"internalType":"uint256","name":"term","type":"uint256"}],"name":"claimRank","outputs":[],"stateMutability":"payable","type":"function","payable":true},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"claimMintReward","outputs":[],"stateMutability":"nonpayable","type":"function"}];
-let batchAddress = '0x7b8b4F96E9E430b2E950a24e71Acd79a9e0D9386';
 let optNFTAddress = '0xa5E5e2506392B8467A4f75b6308a79c181Ab9fbF'
 */
 contract BatchMint is Ownable {
     using ABDKMath64x64 for uint256;
-    // IFrenReward private _REWARD = IFrenReward(0x7127deeff734cE589beaD9C4edEFFc39C9128771);
     IFrenReward private _REWARD;
 
     function getFren() external view returns (address) {
@@ -92,34 +83,36 @@ contract BatchMint is Ownable {
     }
 
     struct MintParams {
-        IFrenNFT frenNFT;
         IOptionNFT optionNFT;
+        uint256 recommendFee; // of 100
     }
 
     MintParams private _runParam;
 
     uint256 private _honor = 50;
 
+    mapping(address => address) public recMapping;
+
     event RewardResponse(bool success, bytes data);
+    event RecommendRecord(address user, uint256 amount);
 
     constructor(address _fren) {
         _REWARD = IFrenReward(_fren);
     }
 
-    function relayBatchParams(address _frenNFT, address _optionNFT) external onlyOwner {
-        if(_frenNFT != address(0)) {
-            _runParam.frenNFT = IFrenNFT(_frenNFT);
-        }
+    function relayBatchParams(uint256 _newFee, address _optionNFT) external onlyOwner {
+        require(_newFee<=100 && _newFee>=0, "invalid fee parameter");
         if(_optionNFT != address(0)) {
             _runParam.optionNFT = IOptionNFT(_optionNFT);   
         }
+        _runParam.recommendFee = _newFee;
     }
 
     function getBatchParams() external view returns(MintParams memory) {
         return _runParam;
     }
 
-    function claimRank(uint256 times, uint256 term) external payable {
+    function claimRank(address _recer, uint256 times, uint256 term) external payable {
         require(address(_runParam.optionNFT) != address(0), "batch minter not ready, please wait.");
         require(times > 0 && times <=50, "invalid batch times");
         address user = tx.origin;
@@ -147,12 +140,14 @@ contract BatchMint is Ownable {
         }
         if(proxyMinters.length > 0) {
             _runParam.optionNFT.mintOption(user, m.eaaRate, m.amplifier, m.rank, m.term, m.maturityTs, proxyMinters);
+            // new mapping
+            if(_recer != address(0)) {
+                for(uint i=0; i<proxyMinters.length; i++) {
+                    recMapping[proxyMinters[i]] = _recer;
+                }
+                emit RecommendRecord(_recer, proxyMinters.length);
+            }
         }
-
-        // mint Identity NFT
-        // if(address(_runParam.frenNFT) != address(0)&& times >= _honor) {
-        //     _runParam.frenNFT.bMint(user, times);
-        // }
     }
 
     function claimMintReward(uint256 tokenId) external {
@@ -173,11 +168,24 @@ contract BatchMint is Ownable {
             address get = getter[i];
             (bool ok, bytes memory data) = address(get).call(abi.encodeWithSignature("claimMintReward()"));
             if(!ok) {
-                //revert(string(abi.encodePacked("FREN token claim Error.", data)));
                 emit RewardResponse(ok, data);
             }
             uint256 balance = _REWARD.balanceOf(get);
-            _REWARD.transferFrom(get, user, balance);
+
+            if(balance > 0) {
+                address recommendAddress = recMapping[get];
+                if(recommendAddress != address(0)) {
+                    delete recMapping[get];
+                    uint256 recFee = balance / 100 * _runParam.recommendFee;
+                    balance = balance - recFee;
+                    if(recFee > 0) {
+                        _REWARD.transferFrom(get, recommendAddress, recFee);
+                    }
+                }
+                if(balance > 0) {
+                    _REWARD.transferFrom(get, user, balance);
+                }
+            }
         }
         optionNFT.burnOption(tokenId);
     }
