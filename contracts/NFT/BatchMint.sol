@@ -77,7 +77,11 @@ interface IOptionNFT {
     function balanceOf(address owner) external view returns (uint256 balance);
 }
 
-
+/*
+let batchAbi = [{"inputs":[{"internalType":"address","name":"_fren","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"success","type":"bool"},{"indexed":false,"internalType":"bytes","name":"data","type":"bytes"}],"name":"RewardResponse","type":"event"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getFren","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"address","name":"_frenNFT","type":"address"},{"internalType":"address","name":"_optionNFT","type":"address"}],"name":"relayBatchParams","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getBatchParams","outputs":[{"components":[{"internalType":"contract IFrenNFT","name":"frenNFT","type":"address"},{"internalType":"contract IOptionNFT","name":"optionNFT","type":"address"}],"internalType":"struct BatchMint.MintParams","name":"","type":"tuple"}],"stateMutability":"view","type":"function","constant":true},{"inputs":[{"internalType":"uint256","name":"times","type":"uint256"},{"internalType":"uint256","name":"term","type":"uint256"}],"name":"claimRank","outputs":[],"stateMutability":"payable","type":"function","payable":true},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"claimMintReward","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+let batchAddress = '0x7b8b4F96E9E430b2E950a24e71Acd79a9e0D9386';
+let optNFTAddress = '0xa5E5e2506392B8467A4f75b6308a79c181Ab9fbF'
+*/
 contract BatchMint is Ownable {
     using ABDKMath64x64 for uint256;
     // IFrenReward private _REWARD = IFrenReward(0x7127deeff734cE589beaD9C4edEFFc39C9128771);
