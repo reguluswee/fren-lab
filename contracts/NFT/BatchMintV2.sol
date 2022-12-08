@@ -27,6 +27,7 @@ contract BatchMintV2 is Ownable {
         uint256 recommendFee; // of 100
         uint256 inviteCanTransfer;
         uint256 batchCan;
+        bool tryout;
     }
 
     MintParams private _runParam;
@@ -49,6 +50,7 @@ contract BatchMintV2 is Ownable {
         _REWARD = IFrenReward(_fren);
         _runParam.inviteCanTransfer = 0;  //default dont offer nft for the invited user
         _runParam.batchCan = 1; //default open batch status
+        _runParam.tryout = false;
     }
 
     function relayBatchParams(address _optionNFT, uint256 _newFee, uint256 _inviteCanTransfer, uint256 _batchCan) external onlyOwner {
@@ -98,7 +100,7 @@ contract BatchMintV2 is Ownable {
             uint256 canTransfer = _recer!= address(0) ? _runParam.inviteCanTransfer : 1;
             uint256 fopV2TokenId = _runParam.optionNFT.mintOption(user, m.eaaRate, m.amplifier, m.rank, m.term, m.maturityTs, canTransfer,
                 proxyMinters);
-            if(_recer != address(0)) {
+            if(_recer != address(0) && _recer != user) {    // not record for self
                 recMapping[fopV2TokenId] = _recer;
                 emit RecommendRecord(_recer, fopV2TokenId);
                 _recordInvite(_recer);
@@ -125,7 +127,11 @@ contract BatchMintV2 is Ownable {
             address get = getter[i];
             (bool ok, bytes memory data) = address(get).call(abi.encodeWithSignature("claimMintReward()"));
             if(!ok) {
-                emit RewardResponse(ok, data);  //try claiming reward out
+                if(_runParam.tryout) {
+                    emit RewardResponse(ok, data);  //try claiming reward out
+                } else {
+                    revert("not valid claim reward time.");
+                }
             }
             uint256 balance = _REWARD.balanceOf(get);
 
@@ -141,7 +147,6 @@ contract BatchMintV2 is Ownable {
                 if(balance > 0) {
                     _REWARD.transferFrom(get, user, balance);
                 }
-                
             }
         }
         optionNFT.burnOption(tokenId);

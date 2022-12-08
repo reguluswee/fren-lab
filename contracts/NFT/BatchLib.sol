@@ -17,6 +17,7 @@ struct BullPack {
     uint256 cRank;
     uint256 term;
     uint256 maturityTs;
+    uint256 canTransfer;
     address[] pMinters;
 }
 
