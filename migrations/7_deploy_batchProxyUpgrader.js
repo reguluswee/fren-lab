@@ -13,20 +13,10 @@ module.exports = async function (deployer) {
   console.log('GeneralBatch deploy succeed:', GeneralBatch_NEW.address)
 
   let adminContract = null;
-  await BatchAdmin.at("0xA68a1E5BbF1b4071899BF6bb4cB126dBc48Bc1C7").then(adminIns => {
+  await BatchAdmin.at("0x52A119794b98cd15EE8b54Fd79A189051C5Fd6C6").then(adminIns => {
     adminContract = adminIns
   })
-  await adminContract.upgrade("0xDD153F0C2c70A64A82e693d5329D244D25886afD", GeneralBatch_NEW.address).then(v => {
+  await adminContract.upgrade("0xe00DB880eb886aeFF535f9BFb05d8BC7FA5b5C95", GeneralBatch_NEW.address).then(v => {
     console.log('update to admin', v)
   })
-  // BatchProxy.at("0x413f201c24f6A4DCad9E7143D1eff6bc97CAacc0").then((instance) => {
-  //   console.log('准备升级合约')
-  //   BatchAdmin.at("0x1B1c75298dD0917D5EfE86aDC2233A1CF99Ba8f4").then(adminIns => {
-  //     adminIns.upgrade("0x413f201c24f6A4DCad9E7143D1eff6bc97CAacc0")
-  //   })
-  //   instance.upgradeTo(GeneralBatchV2.address)
-  // })
-
-  // let params = await deployedMinter.getBatchParams();
-  // console.log('BatchMintV2 parameters:', params)
 };
