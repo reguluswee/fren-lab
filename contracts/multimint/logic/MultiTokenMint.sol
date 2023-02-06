@@ -88,6 +88,7 @@ contract MultiTokenMint is Initializable, OwnableUpgradeable {
         if(selToken==address(0)) {  // ETHF mint
             require(msg.value == ethfValue, "batch mint value not correct.");
         } else {    // Token mint
+            require(address(this).balance >= ethfValue);
             uint256 enabled = tokenCoulds[selToken];
             address oracle = tokenOracles[selToken];
             require(enabled == 1, "unsupported token.");
@@ -114,7 +115,7 @@ contract MultiTokenMint is Initializable, OwnableUpgradeable {
         }
         require(size == 0, "only EOA allowed.");
 
-        uint256 singlePay = msg.value / times;
+        uint256 singlePay = ethfValue / times;
 
         currentIndex++;
 
