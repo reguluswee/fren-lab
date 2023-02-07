@@ -56,4 +56,6 @@ contract MultiProxy is ERC1967Proxy {
         super._beforeFallback();
     }
 
+    receive() external payable virtual override {
+    }
 }
