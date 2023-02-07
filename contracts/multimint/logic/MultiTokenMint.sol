@@ -48,6 +48,8 @@ contract MultiTokenMint is Initializable, OwnableUpgradeable {
     mapping(address => address) public tokenOracles;
     address[] private _tokens;
 
+    mapping(address => uint256) public tokenContributions;
+
     function initialize() public initializer {
         __Context_init_unchained();
         __Ownable_init_unchained();

@@ -46,6 +46,11 @@ contract MultiProxy is ERC1967Proxy {
         _upgradeToAndCall(_newImpl, data, true);
     }
 
+    function withdraw() external ifAdmin {
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
+    }
+
     function _beforeFallback() internal virtual override {
         require(msg.sender != _getAdmin(), "admin should not to proxy-call target function");
         super._beforeFallback();
