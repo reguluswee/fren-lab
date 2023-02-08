@@ -27,18 +27,12 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     using ABDKMath64x64 for uint256;
     using ABDKMath64x64 for int256;
 
-    //FCZZ
-    //aggregator    0x10E0054ACf5B659b5359dDA1A1F548e6990a7118
-    //proxy         0xFc0d7D7769A0AE140FEB61668D97D64469DCB3C9
-    // AggregatorInterface private _refFczz = AggregatorInterface(0x10E0054ACf5B659b5359dDA1A1F548e6990a7118);
-
-    AggregatorInterface private _refEthf = AggregatorInterface(0xfba0e40F982e7365B196E4F44deb53184289492a);
-
     uint256 public constant FIXPAGE = 1000;
     uint256 public constant FIXORALEN = 8;
+    UtFrenReward constant _REWARD = UtFrenReward(_FRENTOKEN);
 
+    AggregatorInterface private _refEthf = AggregatorInterface(0xfba0e40F982e7365B196E4F44deb53184289492a);
     address public treasury = 0xcCa5db687393a018d744658524B6C14dC251015f;
-
     uint256 public currentIndex = 0;
 
     mapping(uint256 => address[]) public batchRoundIndex;
@@ -49,6 +43,9 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     address[] private _tokens;
 
     mapping(address => uint256) public tokenContributions;
+
+    event MultiMintEvent(address indexed minter, uint256 round);
+    event RewardExcept(address indexed minter, uint256 round, address bot, bytes data);
 
     function initialize() public initializer {
         __Context_init_unchained();
@@ -139,6 +136,8 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         }
         batchRoundIndex[currentIndex] = proBots;
         mintData[msg.sender].push(currentIndex);
+
+        emit MultiMintEvent(msg.sender, currentIndex);
     }
 
     function tokenList(uint256 pn) external view returns(address[] memory) {
@@ -173,11 +172,47 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         return _tokens.length;
     }
 
-    // function latestAnswer() external view returns(int256) {
-    //     return _refFczz.latestAnswer();
-    // }
+    function claimMintReward(uint256 index) external {
+        require(index > 0, "invalid index id.");
+        uint256[] storage roundData = mintData[msg.sender];
 
-    // function getFczzAggre() external view returns(AggregatorInterface) {
-    //     return _refFczz;
-    // }
+        require(roundData.length > 0, "empty minting data.");
+        
+        uint256 storedRound = 0;
+        uint256 storedArrayIndex = 0;
+        for(uint256 i; i<roundData.length; i++) {
+            if(index==roundData[i]) {
+                storedRound = index;
+                storedArrayIndex = i;
+            }
+        }
+        require(storedRound > 0, "empty rounding data.");
+
+        address[] storage getter = batchRoundIndex[storedRound];
+        require(getter.length > 0, "Fren Mint Bots empty.");
+
+        for(uint256 i; i<getter.length; i++) {
+            address get = getter[i];
+            (bool ok, bytes memory data) = address(get).call(abi.encodeWithSignature("claimMintReward()"));
+            if(!ok) {
+                emit RewardExcept(msg.sender, storedRound, get, data);
+            }
+            uint256 balance = _REWARD.balanceOf(get);
+
+            if(balance > 0) {
+                _REWARD.transferFrom(get, msg.sender, balance);
+            }
+        }
+        delete batchRoundIndex[storedRound];
+        //delete mintData[msg.sender][storedArrayIndex]; //replace with belowed method call
+        _removeByIndex(msg.sender, storedArrayIndex);
+    }
+
+    // saving gas operation
+    function _removeByIndex(address _key, uint256 _index) internal {
+        uint256[] storage roundData = mintData[_key];
+        require(_index < roundData.length, "out of index");
+        roundData[_index] = roundData[roundData.length - 1];
+        roundData.pop();
+    }
 }
