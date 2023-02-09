@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 contract MultiProxy is ERC1967Proxy {
 
@@ -49,6 +50,10 @@ contract MultiProxy is ERC1967Proxy {
     function withdraw() external ifAdmin {
         (bool success, ) = msg.sender.call{value: address(this).balance}("");
         require(success, "Transfer failed.");
+    }
+
+    function configCall(bytes calldata data) external ifAdmin returns (bytes memory) {
+        return Address.functionDelegateCall(_implementation(), data);
     }
 
     function _beforeFallback() internal virtual override {

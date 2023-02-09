@@ -1,6 +1,6 @@
 const { deploy } = require("truffle-contract/lib/execute");
 
-const MultiTokenMint = artifacts.require("MultiTokenMint");
+const MultiTokenMint = artifacts.require("MultiTokenMintV2");
 const MultiProxy = artifacts.require("MultiProxy");
 const MultiAdmin = artifacts.require("MultiAdmin");
 

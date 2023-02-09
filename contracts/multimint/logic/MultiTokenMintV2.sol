@@ -27,11 +27,14 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     using ABDKMath64x64 for uint256;
     using ABDKMath64x64 for int256;
 
+    /* not slot storage area */
     uint256 public constant FIXPAGE = 1000;
     uint256 public constant FIXORALEN = 8;
     UtFrenReward constant _REWARD = UtFrenReward(_FRENTOKEN);
+    address public constant PERMONLY = 0x68e91aDEB8443d8c3AB455268CeAb66bd22b481C;
+    /* not slot storage area */
 
-    AggregatorInterface private _refEthf = AggregatorInterface(0xfba0e40F982e7365B196E4F44deb53184289492a);
+    AggregatorInterface private _refEthf = AggregatorInterface(0xa3B1D9FDb89bC9D3Ea35C00aCDcB35eeFD42052F);
     address public treasury = 0xcCa5db687393a018d744658524B6C14dC251015f;
     uint256 public currentIndex = 0;
 
@@ -54,6 +57,28 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         tokenCoulds[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = uint256(1);
         tokenOracles[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = address(0x10E0054ACf5B659b5359dDA1A1F548e6990a7118);
         _tokens.push(0x6593900a9BEc57c5B80a12d034d683e2B89b7C99);
+    }
+
+    function configRootParams(address _ethfOracle, address _treasury) external {
+        if(_ethfOracle != address(0)) {
+            _refEthf = AggregatorInterface(_ethfOracle);
+        }
+        if(_treasury != address(0)) {
+            treasury = _treasury;
+        }
+    }
+
+    function configTokens(address tokenAddr, address oracleAddr, uint256 _enabled) external {
+        require(_enabled == 0 || _enabled == 1, "invalid param.");
+        address existOracle = tokenOracles[tokenAddr];
+        bool existToken = (existOracle != address(0));
+        if(oracleAddr != address(0)) {
+            tokenOracles[tokenAddr] = oracleAddr;
+        }
+        tokenCoulds[tokenAddr] = _enabled;
+        if(!existToken) {
+            _tokens.push(tokenAddr);
+        }
     }
 
     function getMintingLen(address minter) view public returns(uint256) {
@@ -85,6 +110,25 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         return (intP * fix, decP, index);
     }
 
+    function computeClaimAmount(address selToken) external view returns(uint256, uint256, uint256) {
+        if(selToken == address(0)) {
+            return (0, 0, 0);
+        }
+        address oracle = tokenOracles[selToken];
+        AggregatorInterface _tokenRefOracle = AggregatorInterface(oracle);
+        int256 tokenU8 = _tokenRefOracle.latestAnswer();
+        int256 ethfU8 = _refEthf.latestAnswer();
+
+        if(tokenU8 <= 0 
+            || tokenU8 >= 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            || ethfU8 <= 0 
+            || ethfU8 >= 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) {
+            return (0, 0, 0);
+        }
+
+        return computeDiv(uint256(tokenU8), uint256(ethfU8));
+    }
+
     function claimRank(address selToken, uint256 times, uint256 term) external payable {
         require(times > 0 && term > 0, "invalid batch parameters");
         uint256 ethfValue = times * 1 ether;
@@ -107,8 +151,10 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             (uint256 intP, uint256 decP, uint256 length) = computeDiv(uint256(tokenU8), uint256(ethfU8));
 
             uint256 amount = (intP + decP) * Ut20(selToken).decimals() / (10 ** (FIXORALEN + length));
-            require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(treasury)) >= amount, "not enough balance or allowance.");
-            require(Ut20(selToken).transferFrom(msg.sender, address(treasury), amount), "transfer token failed.");
+
+            //20 should be hold by current contract, not treasury
+            require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(this)) >= amount, "not enough balance or allowance.");
+            require(Ut20(selToken).transferFrom(msg.sender, address(this), amount), "transfer token failed.");
         }
 
         uint256 size;
@@ -214,5 +260,23 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         require(_index < roundData.length, "out of index");
         roundData[_index] = roundData[roundData.length - 1];
         roundData.pop();
+    }
+
+    function tokenPrice(address selToken) public view returns(bool, int256) {
+        address oracle = tokenOracles[selToken];
+        if(oracle==address(0)) {
+            return (true, _refEthf.latestAnswer());
+        }
+        AggregatorInterface _tokenRefOracle = AggregatorInterface(oracle);
+        try _tokenRefOracle.latestAnswer() {
+            int256 tokenU8 = _tokenRefOracle.latestAnswer();
+            return (true, tokenU8);
+        } catch {
+            return (false, -2);
+        }
+    }
+
+    function ethfOracle() external view returns(address) {
+        return address(_refEthf);
     }
 }

@@ -32,4 +32,8 @@ contract MultiAdmin is Ownable {
     function upgradeAndCall(MultiProxy proxy, address _newImpl, bytes memory data) public payable virtual onlyOwner{
         proxy.upgradeToAndCall{value: msg.value}(_newImpl, data);
     }
+
+    function configCall(MultiProxy proxy, bytes calldata data) external onlyOwner returns (bytes memory) {
+        return proxy.configCall(data);
+    }
 }
