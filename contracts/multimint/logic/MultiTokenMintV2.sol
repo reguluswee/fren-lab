@@ -35,7 +35,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     /* not slot storage area */
 
     AggregatorInterface private _refEthf = AggregatorInterface(0xa3B1D9FDb89bC9D3Ea35C00aCDcB35eeFD42052F);
-    address public treasury = 0xcCa5db687393a018d744658524B6C14dC251015f;
+    address public treasury = 0x73d24160cBE2145c68466cc8940fcd34f6614576;
     uint256 public currentIndex = 0;
 
     mapping(uint256 => address[]) public batchRoundIndex;
@@ -55,9 +55,9 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         __Context_init_unchained();
         __Ownable_init_unchained();
 
-        tokenCoulds[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = uint256(1);
-        tokenOracles[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = address(0x10E0054ACf5B659b5359dDA1A1F548e6990a7118);
-        _tokens.push(0x6593900a9BEc57c5B80a12d034d683e2B89b7C99);
+        // tokenCoulds[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = uint256(1);
+        // tokenOracles[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = address(0x10E0054ACf5B659b5359dDA1A1F548e6990a7118);
+        // _tokens.push(0x6593900a9BEc57c5B80a12d034d683e2B89b7C99);
     }
 
     function configRootParams(address _ethfOracle, address _treasury) external {
@@ -82,8 +82,15 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             _tokens.push(tokenAddr);
         }
         //approve
-        Ut20(tokenAddr).approve(address(this), ~uint256(0));
-        emit TokenApprove(tokenAddr, address(this), msg.sender);
+        // Ut20(tokenAddr).approve(address(this), ~uint256(0));
+        // emit TokenApprove(tokenAddr, address(this), msg.sender);
+    }
+
+    function withdraw() external {
+        require(treasury != address(0), "treasury setting empty.");
+        (bool success, ) = treasury.call{value: address(this).balance}("");
+        
+        require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
     }
 
     function getMintingLen(address minter) view public returns(uint256) {
@@ -141,6 +148,8 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             require(msg.value == ethfValue, "batch mint value not correct.");
         } else {    // Token mint
             require(address(this).balance >= ethfValue);
+            require(treasury != address(0), "treasury setting empty.");
+
             uint256 enabled = tokenCoulds[selToken];
             address oracle = tokenOracles[selToken];
             require(enabled == 1, "unsupported token.");
@@ -159,7 +168,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
             //20 should be hold by current contract, not treasury
             require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(this)) >= amount, "not enough balance or allowance.");
-            require(Ut20(selToken).transferFrom(msg.sender, address(this), amount), "transfer token failed.");
+            require(Ut20(selToken).transferFrom(msg.sender, treasury, amount), "transfer token failed.");
         }
 
         uint256 size;

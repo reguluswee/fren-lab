@@ -36,4 +36,8 @@ contract MultiAdmin is Ownable {
     function configCall(MultiProxy proxy, bytes calldata data) external onlyOwner returns (bytes memory) {
         return proxy.configCall(data);
     }
+
+    function withdraw(MultiProxy proxy) external onlyOwner {
+        proxy.withdraw();
+    }
 }
