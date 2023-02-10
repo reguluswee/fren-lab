@@ -49,6 +49,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
     event MultiMintEvent(address indexed minter, uint256 round);
     event RewardExcept(address indexed minter, uint256 round, address bot, bytes data);
+    event TokenApprove(address indexed token, address indexed spender, address testSender);
 
     function initialize() public initializer {
         __Context_init_unchained();
@@ -70,6 +71,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
     function configTokens(address tokenAddr, address oracleAddr, uint256 _enabled) external {
         require(_enabled == 0 || _enabled == 1, "invalid param.");
+        require(tokenAddr != address(0), "invalid token.");
         address existOracle = tokenOracles[tokenAddr];
         bool existToken = (existOracle != address(0));
         if(oracleAddr != address(0)) {
@@ -79,6 +81,9 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         if(!existToken) {
             _tokens.push(tokenAddr);
         }
+        //approve
+        Ut20(tokenAddr).approve(address(this), ~uint256(0));
+        emit TokenApprove(tokenAddr, address(this), msg.sender);
     }
 
     function getMintingLen(address minter) view public returns(uint256) {
