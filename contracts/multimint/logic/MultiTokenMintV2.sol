@@ -126,7 +126,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             return (0, 0, 0);
         }
 
-        return computeDiv(uint256(tokenU8), uint256(ethfU8));
+        return computeDiv(uint256(ethfU8), uint256(tokenU8));
     }
 
     function claimRank(address selToken, uint256 times, uint256 term) external payable {
@@ -148,7 +148,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             require(tokenU8 > 0 && tokenU8 < 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, "not correct oracle price.");
             require(ethfU8 > 0 && ethfU8 < 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, "not correct oracle price.");
 
-            (uint256 intP, uint256 decP, uint256 length) = computeDiv(uint256(tokenU8), uint256(ethfU8));
+            (uint256 intP, uint256 decP, uint256 length) = computeDiv(uint256(ethfU8), uint256(tokenU8));
 
             uint256 amount = (intP + decP) * Ut20(selToken).decimals() / (10 ** (FIXORALEN + length));
 
