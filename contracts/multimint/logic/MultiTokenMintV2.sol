@@ -47,7 +47,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
     mapping(address => uint256) public tokenContributions;
 
-    event MultiMintEvent(address indexed minter, uint256 round);
+    event MultiMintEvent(address indexed minter, address indexed token, uint256 round);
     event RewardExcept(address indexed minter, uint256 round, address bot, bytes data);
     event TokenApprove(address indexed token, address indexed spender, address testSender);
 
@@ -164,7 +164,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
             (uint256 intP, uint256 decP, uint256 length) = computeDiv(uint256(ethfU8), uint256(tokenU8));
 
-            uint256 amount = (intP + decP) * Ut20(selToken).decimals() / (10 ** (FIXORALEN + length));
+            uint256 amount = (intP + decP) * (10 ** Ut20(selToken).decimals()) / (10 ** (FIXORALEN + length));
 
             //20 should be hold by current contract, not treasury
             require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(this)) >= amount, "not enough balance or allowance.");
@@ -197,7 +197,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         batchRoundIndex[currentIndex] = proBots;
         mintData[msg.sender].push(currentIndex);
 
-        emit MultiMintEvent(msg.sender, currentIndex);
+        emit MultiMintEvent(msg.sender, selToken, currentIndex);
     }
 
     function tokenList(uint256 pn) external view returns(address[] memory) {

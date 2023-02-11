@@ -104,7 +104,7 @@ module.exports = {
     ethf_mainnet: {
       provider: () => new HDWalletProvider({
         privateKeys: privateKey,
-        providerOrUrl: `https://rpc.etherfair.org`,
+        providerOrUrl: `https://rpc.etherfair.org`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
         pollingInterval: 56000
       }),
       network_id: 513100,
@@ -112,7 +112,7 @@ module.exports = {
       timeoutBlocks: 100,
       skipDryRun: true,
       from: privateAddress,
-      networkCheckTimeout: 999999
+      networkCheckTimeout: 99999999
     },
   },
   mocha: {
