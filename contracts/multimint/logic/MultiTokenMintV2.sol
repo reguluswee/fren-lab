@@ -47,19 +47,19 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
     mapping(address => uint256) public tokenContributions;
 
+    mapping(address => uint256) public tokenCredits;    //available maxium trade ethf amount
+
     event MultiMintEvent(address indexed minter, address indexed token, uint256 round);
     event RewardExcept(address indexed minter, uint256 round, address bot, bytes data);
     event TokenApprove(address indexed token, address indexed spender, address testSender);
+    event AddSuppToken(address indexed token);
 
     function initialize() public initializer {
         __Context_init_unchained();
         __Ownable_init_unchained();
-
-        // tokenCoulds[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = uint256(1);
-        // tokenOracles[0x6593900a9BEc57c5B80a12d034d683e2B89b7C99] = address(0x10E0054ACf5B659b5359dDA1A1F548e6990a7118);
-        // _tokens.push(0x6593900a9BEc57c5B80a12d034d683e2B89b7C99);
     }
 
+    /** config method **/
     function configRootParams(address _ethfOracle, address _treasury) external {
         if(_ethfOracle != address(0)) {
             _refEthf = AggregatorInterface(_ethfOracle);
@@ -80,10 +80,18 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         tokenCoulds[tokenAddr] = _enabled;
         if(!existToken) {
             _tokens.push(tokenAddr);
+
+            emit AddSuppToken(tokenAddr);
         }
-        //approve
-        // Ut20(tokenAddr).approve(address(this), ~uint256(0));
-        // emit TokenApprove(tokenAddr, address(this), msg.sender);
+    }
+
+    function grantTokenCredit(address tokenAddr, uint256 creditAmount, bool remove) external {
+        require(tokenAddr != address(0));
+        if(remove) {
+            delete tokenCredits[tokenAddr];
+        } else {
+            tokenCredits[tokenAddr] = creditAmount;
+        }
     }
 
     function withdraw() external {
@@ -91,6 +99,15 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         (bool success, ) = treasury.call{value: address(this).balance}("");
         
         require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
+    }
+    /** config method **/
+
+    function tokenCredit(address tokenAddr) view public returns(uint256) {
+        return tokenCredits[tokenAddr];
+    }
+
+    function tokenContribution(address tokenAddr) view public returns(uint256) {
+        return tokenContributions[tokenAddr];
     }
 
     function getMintingLen(address minter) view public returns(uint256) {
@@ -149,11 +166,13 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
         } else {    // Token mint
             require(address(this).balance >= ethfValue);
             require(treasury != address(0), "treasury setting empty.");
-
-            uint256 enabled = tokenCoulds[selToken];
+            
             address oracle = tokenOracles[selToken];
-            require(enabled == 1, "unsupported token.");
+            require(tokenCoulds[selToken] == 1, "unsupported token.");
             require(oracle != address(0), "token setting error.");
+
+            require(tokenCredit(selToken) >= ethfValue, "lack of token credit balance");
+            tokenCredits[selToken] = tokenCredit(selToken) * 60 / 100;
 
             AggregatorInterface _tokenRefOracle = AggregatorInterface(oracle);
 
@@ -169,6 +188,9 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             //20 should be hold by current contract, not treasury
             require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(this)) >= amount, "not enough balance or allowance.");
             require(Ut20(selToken).transferFrom(msg.sender, treasury, amount), "transfer token failed.");
+
+            //start to compute token contribution for future fren dex
+            tokenContributions[selToken] = ethfValue + tokenContribution(selToken);
         }
 
         uint256 size;
