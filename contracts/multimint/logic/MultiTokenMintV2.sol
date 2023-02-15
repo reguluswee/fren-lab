@@ -161,12 +161,13 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     function claimRank(address selToken, uint256 times, uint256 term) external payable {
         require(times > 0 && term > 0, "invalid batch parameters");
         uint256 ethfValue = times * 1 ether;
-        require(address(this).balance >= ethfValue, "contract balance not enough.");
+        
         if(selToken==address(0)) {  // ETHF mint
             require(msg.value == ethfValue, "batch mint value not correct.");
         } else {    // Token mint
             require(treasury != address(0), "treasury setting empty.");
-            
+            require(address(this).balance >= ethfValue, "contract balance not enough.");
+                        
             address oracle = tokenOracles[selToken];
             require(tokenCoulds[selToken] == 1, "unsupported token.");
             require(oracle != address(0), "token setting error.");
