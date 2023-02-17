@@ -184,7 +184,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
 
             (uint256 intP, uint256 decP, uint256 length) = computeDiv(uint256(ethfU8), uint256(tokenU8));
 
-            uint256 amount = (intP + decP) * (10 ** Ut20(selToken).decimals()) / (10 ** (FIXORALEN + length));
+            uint256 amount = ((intP + decP) * (10 ** Ut20(selToken).decimals()) / (10 ** (FIXORALEN + length))) * times;
 
             //20 should be hold by current contract, not treasury
             require(Ut20(selToken).balanceOf(msg.sender) >= amount && Ut20(selToken).allowance(msg.sender, address(this)) >= amount, "not enough balance or allowance.");
