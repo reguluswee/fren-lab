@@ -60,6 +60,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     }
 
     /** config method **/
+    /*
     function configRootParams(address _ethfOracle, address _treasury) external {
         if(_ethfOracle != address(0)) {
             _refEthf = AggregatorInterface(_ethfOracle);
@@ -93,13 +94,14 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             tokenCredits[tokenAddr] = creditAmount;
         }
     }
+    */
 
-    function withdraw() external {
-        require(treasury != address(0), "treasury setting empty.");
-        (bool success, ) = treasury.call{value: address(this).balance}("");
+    // function withdraw() external {
+    //     require(treasury != address(0), "treasury setting empty.");
+    //     (bool success, ) = treasury.call{value: address(this).balance}("");
         
-        require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
-    }
+    //     require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
+    // }
     /** config method **/
 
     function tokenCredit(address tokenAddr) view public returns(uint256) {
@@ -173,7 +175,7 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             require(oracle != address(0), "token setting error.");
 
             require(tokenCredit(selToken) >= ethfValue, "lack of token credit balance");
-            tokenCredits[selToken] = tokenCredit(selToken) - ethfValue * 60 / 100;
+            tokenCredits[selToken] = tokenCredit(selToken) - ethfValue * 40 / 100;
 
             AggregatorInterface _tokenRefOracle = AggregatorInterface(oracle);
 
