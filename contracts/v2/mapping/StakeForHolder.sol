@@ -88,7 +88,7 @@ contract StakeForHolder is IMapping, IBurnRedeemable, Ownable {
 
     function transfer() external {
         require(!claimData[msg.sender].done, "already transfered swap");
-        require(block.timestamp >= claimData[msg.sender].maturityTs, "invalid maturityTs");
+        require(block.timestamp >= claimData[msg.sender].maturityTs && claimData[msg.sender].maturityTs > 0, "invalid maturityTs");
         require(NEWFREN.balanceOf(address(this)) >= claimData[msg.sender].amount, "not enough balance, try later");
 
         claimData[msg.sender].done = true;

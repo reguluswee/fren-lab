@@ -1,6 +1,6 @@
 const StakeForHolder = artifacts.require("StakeForHolder");
 
-const MerkleRoot = '0xfc171fb7e301a6874f0a5d305dfdcb6e3d931a4e701f617c61a61cd7d3571e3c'
+const MerkleRoot = '0xe54167473a256e987faa3761ebe1b7a993c0fd28fabf233987998e245f2b3c78'
 
 module.exports = async function (deployer) {
 
