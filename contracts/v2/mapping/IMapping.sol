@@ -33,6 +33,14 @@ library MerkleProof {
     }
 }
 
+struct MintInfo {
+    address user;
+    uint256 term;
+    uint256 maturityTs;
+    uint256 rank;
+    uint256 eaaRate;
+}
+
 interface PreFren {
     function allowance(address owner, address spender) external view returns (uint256);
     function approve(address spender, uint256 amount) external returns (bool);
@@ -44,6 +52,8 @@ interface PreFren {
     function balanceOf(address account) external view returns (uint256);
 
     function burn(address user, uint256 amount) external;
+
+    function userMints(address _user) external view returns(MintInfo memory);
 }
 
 interface IMapping {
