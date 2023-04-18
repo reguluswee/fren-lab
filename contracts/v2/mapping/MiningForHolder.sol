@@ -32,7 +32,7 @@ contract MiningForHolder is IMapping, IBurnRedeemable, Ownable {
 
     bool public strictTrans = true;
 
-    mapping(address => uint256) public claimData;
+    mapping(address => mapping(uint256 => mapping(uint256 => uint256))) public claimData;
 
     constructor(bytes32 _root) {
         root = _root;
@@ -51,15 +51,18 @@ contract MiningForHolder is IMapping, IBurnRedeemable, Ownable {
         NEWFREN.transferFrom(address(this), msg.sender, NEWFREN.balanceOf(address(this)));
     }
 
-    function leaf(address _holder, uint256 _amount, uint256 _maturityTs) public pure returns(bytes32) {
+    function leaf(address _holder, uint256 _type, uint256 _round, uint256 _amount, uint256 _maturityTs) public pure returns(bytes32) {
         return keccak256(abi.encode(
-            _holder, _amount, _maturityTs
+            _holder, _type, _round, _amount, _maturityTs
         ));
     }
 
-    function checkHolder(uint256 _amount, uint256 _maturityTs, bytes32[] calldata _proof) view public returns(bool){
-        return _verify(leaf(msg.sender, _amount, _maturityTs), _proof);
+    function checkHolder(uint256 _type, uint256 _round, 
+        uint256 _amount, uint256 _maturityTs, bytes32[] calldata _proof) view public returns(bool){
+        return _verify(leaf(msg.sender, _type, _round, _amount, _maturityTs), _proof);
     }
+
+
 
     function uniQueryRounds(uint256 _type, uint256 _page) public view returns(uint256 len, uint256[] memory rounds){
         if(_type!=1 && _type!=2) {
@@ -83,10 +86,14 @@ contract MiningForHolder is IMapping, IBurnRedeemable, Ownable {
         return proxy.getRoundBots(_round);
     }
 
-    function claim(uint256 _amount, uint256 _maturityTs, bytes32[] calldata _proof) external {
-        require(claimData[msg.sender] == 0, "already claimed");
+    function claim(uint256 _type, uint256 _round, uint256 _amount, uint256 _maturityTs, bytes32[] calldata _proof) external {
+        require(claimData[msg.sender][_type][_round] == 0, "already claimed");
+        
         require(_amount > 0 && _maturityTs > 0, "invalid parameters value");
-        require(checkHolder(_amount, _maturityTs, _proof), "invalid address, amount or maturity time");
+        require(block.timestamp >= _maturityTs, "invalid maturityTs");
+
+        require(checkHolder(_type, _round, _amount, _maturityTs, _proof), "invalid address, amount or maturity time");
+
         require(NEWFREN.balanceOf(address(this)) >= _amount, "not enough balance, try later");
 
         uint256 oldFrenBalance = PREFREN.balanceOf(msg.sender);
@@ -101,7 +108,7 @@ contract MiningForHolder is IMapping, IBurnRedeemable, Ownable {
 
         PREFREN.burn(msg.sender, burnAmount);
 
-        claimData[msg.sender] = _amount;
+        claimData[msg.sender][_type][_round] = _amount;
         NEWFREN.transferFrom(address(this), msg.sender, _amount);
 
         emit Transfered(msg.sender, 2, _amount);
