@@ -5,12 +5,13 @@ import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "../libs/DicLib.sol";
+import "../../common/Utility.sol";
 
-contract GeneralBatch is Initializable, OwnableUpgradeable {
+contract GeneralBatch is Initializable, OwnableUpgradeable, BatchCop {
     using ABDKMath64x64 for uint256;
 
-    PIFrenReward constant _REWARD = PIFrenReward(_FRENTOKEN);
+    UtFrenReward constant _REWARD = UtFrenReward(_FRENTOKEN);
+    Ut20 constant _FREN = Ut20(_FRENTOKEN);
 
     uint256 public currentIndex = 0;
 
@@ -39,7 +40,7 @@ contract GeneralBatch is Initializable, OwnableUpgradeable {
 
     function claimRank(uint256 times, uint256 term) external payable {
         require(times > 0 && term > 0, "invalid batch parameters");
-        require(msg.value == times * 1 ether, "batch mint value not correct.");
+        require(msg.value == times * _FREN.timePrice(), "batch mint value not correct.");
 
         uint256 size;
         address sender = msg.sender;
@@ -50,12 +51,10 @@ contract GeneralBatch is Initializable, OwnableUpgradeable {
 
         uint256 singlePay = msg.value / times;
 
-        currentIndex++;
-
         address[] memory proBots = new address[](times);
 
         for(uint256 i; i<times; i++){
-            PMinter get = new PMinter();
+            UtMinter get = new UtMinter();
             (bool exeResult, ) = address(get).call{value:singlePay}(abi.encodeWithSignature("claimRank(uint256)", term));
             
             if(!exeResult) {
@@ -64,8 +63,10 @@ contract GeneralBatch is Initializable, OwnableUpgradeable {
             }
             proBots[i] = address(get);
         }
-        batchRoundIndex[currentIndex] = proBots;
+        batchRoundIndex[++currentIndex] = proBots;
         mintData[msg.sender].push(currentIndex);
+
+        emit BatchClaim(msg.sender, times, term, _FREN.timePrice());
     }
 
     function claimMintReward(uint256 index) external {
@@ -102,6 +103,8 @@ contract GeneralBatch is Initializable, OwnableUpgradeable {
         delete batchRoundIndex[storedRound];
         //delete mintData[msg.sender][storedArrayIndex]; //replace with belowed method call
         _removeByIndex(msg.sender, storedArrayIndex);
+
+        emit BatchReward(msg.sender, index);
     }
 
     // saving gas operation

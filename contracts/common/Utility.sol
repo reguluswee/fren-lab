@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-address constant _FRENTOKEN = 0x7127deeff734cE589beaD9C4edEFFc39C9128771;
+address constant _FRENTOKEN = 0xf81ed9cecFE069984690A30b64c9AAf5c0245C9F;
 
 interface Ut20 {
     function allowance(address owner, address spender) external view returns (uint256);
@@ -17,6 +17,8 @@ interface Ut20 {
         address to,
         uint256 amount
     ) external returns (bool);
+
+    function timePrice() external view returns(uint256);
 }
 
 interface UtFrenMint{
@@ -49,4 +51,9 @@ contract UtMinter{
         _FREN.claimMintReward();
         selfdestruct(payable(tx.origin));
     }
+}
+
+interface BatchCop {
+    event BatchClaim(address indexed user, uint256 times, uint256 term, uint256 price);
+    event BatchReward(address indexed user, uint256 round);
 }
