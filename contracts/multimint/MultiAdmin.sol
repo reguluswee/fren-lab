@@ -40,4 +40,17 @@ contract MultiAdmin is Ownable {
     function withdraw(MultiProxy proxy) external onlyOwner {
         proxy.withdraw();
     }
+
+    //add custom method
+    function configRootParams(MultiProxy proxy, address _ethfOracle, address _treasury) external onlyOwner {
+        proxy.configRootParams(_ethfOracle, _treasury);
+    }
+
+    function configTokens(MultiProxy proxy, address tokenAddr, address oracleAddr, uint256 _enabled) external onlyOwner {
+        proxy.configTokens(tokenAddr, oracleAddr, _enabled);
+    }
+
+    function grantTokenCredit(MultiProxy proxy, address tokenAddr, uint256 creditAmount, bool remove) external onlyOwner {
+        proxy.grantTokenCredit(tokenAddr, creditAmount, remove);
+    }
 }

@@ -60,7 +60,6 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
     }
 
     /** config method **/
-    /*
     function configRootParams(address _ethfOracle, address _treasury) external {
         if(_ethfOracle != address(0)) {
             _refEthf = AggregatorInterface(_ethfOracle);
@@ -94,14 +93,6 @@ contract MultiTokenMintV2 is Initializable, OwnableUpgradeable {
             tokenCredits[tokenAddr] = creditAmount;
         }
     }
-    */
-
-    // function withdraw() external {
-    //     require(treasury != address(0), "treasury setting empty.");
-    //     (bool success, ) = treasury.call{value: address(this).balance}("");
-        
-    //     require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
-    // }
     /** config method **/
 
     function tokenCredit(address tokenAddr) view public returns(uint256) {

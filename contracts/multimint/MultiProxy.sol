@@ -55,10 +55,6 @@ contract MultiProxy is ERC1967Proxy {
         require(success, string(abi.encodePacked("transfer failed.", Strings.toHexString(address(this)), ", balance:" ,Strings.toString(address(this).balance))));
     }
 
-    // function withdrawToken(address tokenAddr, address toAddr, uint256 amount) external ifAdmin {
-    //     Ut20(tokenAddr).transferFrom(address(this), toAddr, amount);
-    // }
-
     function configCall(bytes calldata data) external ifAdmin returns (bytes memory) {
         return Address.functionDelegateCall(_implementation(), data);
     }
@@ -69,5 +65,18 @@ contract MultiProxy is ERC1967Proxy {
     }
 
     receive() external payable virtual override {
+    }
+
+    //add custom method
+    function configRootParams(address _ethfOracle, address _treasury) external ifAdmin {
+        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("configRootParams(address,address)", _ethfOracle, _treasury));
+    }
+
+    function configTokens(address tokenAddr, address oracleAddr, uint256 _enabled) external ifAdmin {
+        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("configTokens(address,address,uint256)", tokenAddr, oracleAddr, _enabled));
+    }
+
+    function grantTokenCredit(address tokenAddr, uint256 creditAmount, bool remove) external ifAdmin {
+        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("grantTokenCredit(address,uint256,bool)", tokenAddr, creditAmount, remove));
     }
 }
