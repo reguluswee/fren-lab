@@ -3,13 +3,11 @@ const { deploy } = require("truffle-contract/lib/execute");
 const MultiAdmin = artifacts.require("MultiAdmin");
 const MultiTokenMintV2 = artifacts.require("MultiTokenMintV2");
 
-// const DeployedProxyContract = '0x8e3f39Beb44758C004F856E1E7498bAB26CD3F3F'
-// const DeployedAdminContract = '0x02b9aFD26f9a25ac601DFd31A24C89d39B68eEcc'
-// const DeployedLogicContract = "0x0000000000000000000000000000000000000000"
+const DeployedProxyContract = '0x928b35685BDa2458B937B479Fb763D78476bF472'
 
-const DeployedProxyContract = '0x2283b492353Bbb955268812FfB200C724fc0Bd49'
-const DeployedAdminContract = '0x4e7E4e720C4e98C86988bF71E03775BeB787F103'
-const DeployedLogicContract = '0x1F0aA658fe7e37c1fC24a896b9e5D1ADdcaDa4Fc'
+const DeployedAdminContract = '0xE378697BEFFDc158AB41fDa09F1c63e7dFD9c484'
+
+const DeployedLogicContract = '0x895586F7598f8477dee91Eb01fB20b3d078e360a'
 const needUpdate = false
 
 module.exports = async function (deployer) {

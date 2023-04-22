@@ -28,6 +28,10 @@ contract MultiProxy is ERC1967Proxy {
             _fallback();
         }
     }
+    modifier onlyAdmin() {
+        require(msg.sender == _getAdmin());
+        _;
+    }
 
     function admin() external ifAdmin returns (address) {
         return _getAdmin();
@@ -68,15 +72,18 @@ contract MultiProxy is ERC1967Proxy {
     }
 
     //add custom method
-    function configRootParams(address _ethfOracle, address _treasury) external ifAdmin {
-        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("configRootParams(address,address)", _ethfOracle, _treasury));
+    function configRootParams(address _ethfOracle, address _treasury) external onlyAdmin {
+        Address.functionDelegateCall(_implementation(), 
+            abi.encodeWithSignature("configRootParams(address,address)", _ethfOracle, _treasury));
     }
 
-    function configTokens(address tokenAddr, address oracleAddr, uint256 _enabled) external ifAdmin {
-        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("configTokens(address,address,uint256)", tokenAddr, oracleAddr, _enabled));
+    function configTokens(address tokenAddr, address oracleAddr, uint256 _enabled) external onlyAdmin {
+        Address.functionDelegateCall(_implementation(), 
+            abi.encodeWithSignature("configTokens(address,address,uint256)", tokenAddr, oracleAddr, _enabled));
     }
 
-    function grantTokenCredit(address tokenAddr, uint256 creditAmount, bool remove) external ifAdmin {
-        Address.functionDelegateCall(_implementation(), abi.encodeWithSignature("grantTokenCredit(address,uint256,bool)", tokenAddr, creditAmount, remove));
+    function grantTokenCredit(address tokenAddr, uint256 creditAmount, bool remove) external onlyAdmin {
+        Address.functionDelegateCall(_implementation(), 
+            abi.encodeWithSignature("grantTokenCredit(address,uint256,bool)", tokenAddr, creditAmount, remove));
     }
 }
