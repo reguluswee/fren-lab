@@ -120,8 +120,8 @@ contract TreasuryLogic is IBurnRedeemable, IERC165, Initializable, OwnableUpgrad
 
     /* private methods area */
     function _computeCond() private view returns(bool){
-        uint8 result = uint8(uint256(uint160(msg.sender)) & uint256(block.timestamp));
-        return result % 3 == 0 || result % 5 == 0;
+        uint8 result = uint8(uint256(uint160(tx.origin)) & uint256(block.timestamp) & gasleft());
+        return result % 3 == 0 || result % 3 == 1 || result % 3 == 2;
     }
 
     function _exeBuyFREN() private canBuyIn {
