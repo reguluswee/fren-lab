@@ -29,7 +29,7 @@ contract TreasuryLogic is IBurnRedeemable, IERC165, Initializable, OwnableUpgrad
     address public constant DEVWALLET = 0x0926c669CC58E83Da4b9F97ceF30f508500732a6;
     uint256 private constant _MAXBUYIN = 20 ether;
     uint256 private constant _MINBUYIN = 1_000;
-    uint256 private constant _PERIODSEC_ = 2 * 60 * 60;
+    uint256 private constant _PERIODSEC_ = 30 * 60;
     uint256 public constant PAGESIZE = 100;
 
     /* event defined area */
