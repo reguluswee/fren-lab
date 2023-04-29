@@ -11,9 +11,11 @@ const etherscanApiKey = process.env.ETHERS_SCAN_API_KEY || ''
 const polygonApiKey = process.env.POLYGON_SCAN_API_KEY || ''
 const bscApiKey = process.env.BSC_SCAN_API_KEY || ''
 
+/* just for treasury deploy and manage */
 const updateDeployerPK = process.env.NEW_DEPLOYER_PK || ''
 const updatePrivateKey = [updateDeployerPK]
 const updatePrivateAddress = process.env.NEW_DEPLOYER_ADDRESS
+/* just for treasury deploy and manage */
 
 module.exports = {
   networks: {
@@ -107,7 +109,8 @@ module.exports = {
     },
     ethf_mainnet: {
       provider: () => new HDWalletProvider({
-        privateKeys: updatePrivateKey,
+        //privateKeys: updatePrivateKey,
+        privateKeys: privateKey,
         providerOrUrl: `https://rpc.etherfair.org`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
         pollingInterval: 56000
       }),
@@ -115,7 +118,8 @@ module.exports = {
       confirmations: 2,
       timeoutBlocks: 100,
       skipDryRun: true,
-      from: updatePrivateAddress,
+      // from: updatePrivateAddress,
+      from: privateAddress,
       networkCheckTimeout: 99999999
     },
   },
