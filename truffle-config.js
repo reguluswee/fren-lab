@@ -17,6 +17,12 @@ const updatePrivateKey = [updateDeployerPK]
 const updatePrivateAddress = process.env.NEW_DEPLOYER_ADDRESS
 /* just for treasury deploy and manage */
 
+/* just for mintfun */
+const mintfunDeployerPK = process.env.MINTFUN_DEPLOYER_PK || ''
+const mfPrivateKey = [mintfunDeployerPK]
+const mfPrivateAddress = process.env.MINTFUN_DEPLOYER_ADDRESS
+/* just for mintfun */
+
 module.exports = {
   networks: {
     ganache: {
@@ -122,6 +128,19 @@ module.exports = {
       from: privateAddress,
       networkCheckTimeout: 99999999
     },
+    eth_mainnet: {
+      provider: () => new HDWalletProvider({
+        privateKeys: mfPrivateKey,
+        providerOrUrl: `https://mainnet.infura.io/v3/db7ad163cfed48c181c8456f2ab3fe54`,
+        pollingInterval: 56000
+      }),
+      network_id: 1,
+      confirmations: 2,
+      timeoutBlocks: 100,
+      skipDryRun: true,
+      from: mfPrivateAddress,
+      networkCheckTimeout: 999999
+    },
   },
   mocha: {
     timeout: 100_000
@@ -132,7 +151,7 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 20
+          runs: 200
         },
         evmVersion: "london"
       }
