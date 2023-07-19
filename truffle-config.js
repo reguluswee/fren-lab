@@ -23,6 +23,13 @@ const mfPrivateKey = [mintfunDeployerPK]
 const mfPrivateAddress = process.env.MINTFUN_DEPLOYER_ADDRESS
 /* just for mintfun */
 
+/* polygon testnet */
+const polygonDeployerPK = process.env.POLYGON_TEST_PK || ''
+const polygonPrivateKey = [polygonDeployerPK]
+const polygonPrivateAddress = process.env.POLYGON_TEST_ADDRESS
+/* polygon testnet */
+
+
 module.exports = {
   networks: {
     ganache: {
@@ -100,7 +107,7 @@ module.exports = {
     },
     mumbai: {
       provider: () => new HDWalletProvider({
-        privateKeys: privateKey,
+        privateKeys: polygonPrivateKey,
         providerOrUrl: `https://rpc-mumbai.maticvigil.com/v1/53a113316e0a9e20bcf02b13dd504ac33aeea3ba`,
         pollingInterval: 56000
       }),
@@ -109,7 +116,7 @@ module.exports = {
       timeoutBlocks: 200,
       pollingInterval: 1000,
       skipDryRun: true,
-      from: privateAddress,
+      from: polygonPrivateAddress,
       networkCheckTimeout: 999999
       //websockets: true
     },
@@ -117,7 +124,7 @@ module.exports = {
       provider: () => new HDWalletProvider({
         //privateKeys: updatePrivateKey,
         privateKeys: privateKey,
-        providerOrUrl: `https://rpc.etherfair.org`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
+        providerOrUrl: `https://rpc.etherfair.link`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
         pollingInterval: 56000
       }),
       network_id: 513100,
@@ -139,6 +146,19 @@ module.exports = {
       timeoutBlocks: 100,
       skipDryRun: true,
       from: mfPrivateAddress,
+      networkCheckTimeout: 999999
+    },
+    bsc_mainnet: {
+      provider: () => new HDWalletProvider({
+        privateKeys: privateKey,
+        providerOrUrl: `https://bsc-dataseed1.ninicoin.io`,
+        pollingInterval: 56000
+      }),
+      network_id: 56,
+      confirmations: 2,
+      timeoutBlocks: 100,
+      skipDryRun: true,
+      from: privateAddress,
       networkCheckTimeout: 999999
     },
   },
