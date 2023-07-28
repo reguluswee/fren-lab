@@ -81,7 +81,7 @@ contract StakeImpl is Initializable, OwnableUpgradeable {
         emit Staked(_msgSender(), term, amount, estimateReward);
     }
 
-    function withdraw() external {
+    function endStake() external {
         ActStakeInfo memory stakeObj = userStakes[_msgSender()];
         require(stakeObj.amount > 0, "FREN: no stake exists");
         uint256 reward = _calculateStakeReward(stakeObj.stakeTs, stakeObj.stakeTerm, stakeObj.mrr, stakeObj.amount);

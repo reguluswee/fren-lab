@@ -3,7 +3,8 @@ const { deploy } = require("truffle-contract/lib/execute");
 const StakeManager = artifacts.require("StakeManager");
 const StakeImpl = artifacts.require("StakeImpl");
 
-const DeployedLogicContract = '0x86FD9931009Db22Ba0C993477EFeFC50ffA75818'
+const DeployedLogicContract = '0x9c48E1C149cEa7643F4656170FC1B9cD8a089F05'
+
 const DeployedAdminContract = '0x4AB6b3E9F46169754Df4183C43fbA076fC05ceE8'
 const DeployedProxyContract = '0x3a6370B6C99a776833540f1eB884417604011a68'
 
@@ -26,7 +27,7 @@ module.exports = async function (deployer) {
   console.log('StakeImpl match succeed:', StakeImpl.address)
 
   let adminContract = null;
-  await LockManager.at(DeployedAdminContract).then(adminIns => {
+  await StakeManager.at(DeployedAdminContract).then(adminIns => {
     adminContract = adminIns
   })
 
