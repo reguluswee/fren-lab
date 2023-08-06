@@ -37,10 +37,13 @@ contract BatchTransfer {
     event ChangeParam(uint256 _coinFee, uint256 _frenMinimum, uint256 _frenFee);
     event ChangeOwner(address _newHod);
     event ChangeCashier(address _newCashier);
+    event ChangeFren(address _newFren);
     event BatchTrans(address indexed user, address indexed token, uint256 totalAmount, uint256 numbers);
 
     constructor(address _frenAddr, uint256 _coinFee, uint256 _frenMinimum, uint256 _frenFee) {
-        frenToken = ERC20(_frenAddr);
+        if(_frenAddr!=address(0)) {
+            frenToken = ERC20(_frenAddr);
+        }
         coinFee = _coinFee;
         frenMinimum = _frenMinimum;
         frenFee = _frenFee;
@@ -72,17 +75,33 @@ contract BatchTransfer {
         emit ChangeCashier(_newPayAddr);
     }
 
+    function setFrenToken(address _deployedFren) external opByDep {
+        if(_deployedFren != address(0)) {
+            frenToken = ERC20(_deployedFren);
+            emit ChangeFren(_deployedFren);
+        }
+    }
+
+    function _canFren() private view returns(bool) {
+        if(address(frenToken) != address(0)) {
+            return true;
+        }
+        return false;
+    }
+
     function getTokenInfo(address _tokenAddr, address _spenderAddr) public view 
         returns(TokenUser memory data){
         data.coinFee = coinFee;
         data.frenFee = frenFee;
         if(_tokenAddr == address(0)) {
-            if(msg.sender != address(0)) {
+            if(msg.sender != address(0) && _canFren()) {
                 data.frenBalance = frenToken.balanceOf(msg.sender);
+
+                if(_spenderAddr != address(0)) {
+                    data.frenAllowance = frenToken.allowance(msg.sender, _spenderAddr);
+                }
             }
-            if(_spenderAddr != address(0)) {
-                data.frenAllowance = frenToken.allowance(msg.sender, _spenderAddr);
-            }
+            
             return data;
         }
         ERC20 _token_ = ERC20(_tokenAddr);
@@ -92,12 +111,15 @@ contract BatchTransfer {
         data.totalSupply = _token_.totalSupply();
         if(msg.sender != address(0)) {
             data.balance = _token_.balanceOf(msg.sender);
-            data.frenBalance = frenToken.balanceOf(msg.sender);
             data.allowance = _token_.allowance(msg.sender, _spenderAddr);
-            data.frenAllowance = frenToken.allowance(msg.sender, _spenderAddr);
 
-            if(data.frenBalance >= frenMinimum) {
-                data.useToken = 1;
+            if(_canFren()) {
+                data.frenBalance = frenToken.balanceOf(msg.sender);
+                data.frenAllowance = frenToken.allowance(msg.sender, _spenderAddr);
+
+                if(data.frenBalance >= frenMinimum) {
+                    data.useToken = 1;
+                }
             }
         }
 
@@ -105,7 +127,7 @@ contract BatchTransfer {
     }
 
     function _regaSender() internal view returns(bool) {
-        if(frenToken.balanceOf(msg.sender) < frenMinimum) {
+        if(!_canFren() || frenToken.balanceOf(msg.sender) < frenMinimum) {
             return false;
         }
         return true;
