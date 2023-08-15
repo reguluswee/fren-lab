@@ -100,6 +100,9 @@ contract BatchTransfer {
                 if(_spenderAddr != address(0)) {
                     data.frenAllowance = frenToken.allowance(msg.sender, _spenderAddr);
                 }
+                if(data.frenBalance >= frenMinimum) {
+                    data.useToken = 1;
+                }
             }
             
             return data;
