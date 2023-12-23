@@ -29,6 +29,11 @@ const polygonPrivateKey = [polygonDeployerPK]
 const polygonPrivateAddress = process.env.POLYGON_TEST_ADDRESS
 /* polygon testnet */
 
+/* base */
+const liveNetworkPKBase = process.env.BASE_PK || ''
+const privateKeyBase = [ liveNetworkPKBase ]
+const privateAddressBase = process.env.BASE_ADDRESS
+
 
 module.exports = {
   networks: {
@@ -161,6 +166,34 @@ module.exports = {
       from: privateAddress,
       networkCheckTimeout: 999999
     },
+    base_mainnet: {
+      provider: () => new HDWalletProvider({
+        privateKeys: privateKeyBase,
+        providerOrUrl: `https://mainnet.base.org`,
+        pollingInterval: 56000
+      }),
+      network_id: 8453,
+      confirmations: 2,
+      timeoutBlocks: 100,
+      skipDryRun: true,
+      from: privateAddressBase,
+      networkCheckTimeout: 999999,
+      gasPrice: 1000000000
+    },
+    dis_testnet: {
+      provider: () => new HDWalletProvider({
+        privateKeys: privateKey,
+        providerOrUrl: `http://125.228.146.211`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
+        pollingInterval: 56000
+      }),
+      // network_id: 513111,
+      network_id: 3,
+      confirmations: 2,
+      timeoutBlocks: 100,
+      skipDryRun: true,
+      from: privateAddress,
+      networkCheckTimeout: 99999999
+    }
   },
   mocha: {
     timeout: 100_000
