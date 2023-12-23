@@ -1,7 +1,7 @@
 const BatchTransfer = artifacts.require("BatchTransfer");
 
 var Web3 = require("web3")
-var provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
+var provider = new Web3.providers.HttpProvider("https://rpc.dischain.xyz")
 var web3 = new Web3(provider)
 
 module.exports = async function (deployer, network) {
@@ -11,7 +11,7 @@ module.exports = async function (deployer, network) {
   let frenMinimum = web3.utils.toWei('10000000', "ether");
   let frenFee = web3.utils.toWei('880000', "ether");
   
-  if(network == 'ethf_mainnet') {
+  if(network == 'dis_mainnet') {
     // ETHF chain
     frenEthf = "0xf81ed9cecFE069984690A30b64c9AAf5c0245C9F";
     coinFee = web3.utils.toWei('0.1', "ether");

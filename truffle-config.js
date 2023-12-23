@@ -125,11 +125,11 @@ module.exports = {
       networkCheckTimeout: 999999
       //websockets: true
     },
-    ethf_mainnet: {
+    dis_mainnet: {
       provider: () => new HDWalletProvider({
         //privateKeys: updatePrivateKey,
         privateKeys: privateKey,
-        providerOrUrl: `https://rpc.etherfair.link`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
+        providerOrUrl: `https://rpc.dischain.xyz`,//`http://221.218.208.94:18545`,//`https://rpc.etherfair.link`, //`https://rpc1.etherfair.org`,
         pollingInterval: 56000
       }),
       network_id: 513100,
